@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProdukController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -85,6 +86,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/update/{id}', [MasterJenisController::class, 'update'])->name('master-jenis-produk.update');
         Route::get('/show/{id}', [MasterJenisController::class, 'show'])->name('master-jenis-produk.show');
         Route::delete('/delete/{id}', [MasterJenisController::class, 'destroy'])->name('master-jenis-produk.destroy');
+    });
+    Route::prefix('produk')->group(function () {
+        Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
+        Route::get('/create', [ProdukController::class, 'create'])->name('produk.create');
+        Route::post('/store', [ProdukController::class, 'store'])->name('produk.store');
+        Route::get('/edit/{id}', [ProdukController::class, 'edit'])->name('produk.edit');
+        Route::put('/update/{id}', [ProdukController::class, 'update'])->name('produk.update');
+        Route::get('/show/{id}', [ProdukController::class, 'show'])->name('produk.show');
+        Route::delete('/delete/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
     });
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');

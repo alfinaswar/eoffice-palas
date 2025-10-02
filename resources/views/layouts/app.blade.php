@@ -142,9 +142,9 @@
                         <h6 class="submenu-hdr">Produk</h6>
                         <ul>
                             <li>
-                                <a href="{{ route('users.index') }}">
+                                <a href="{{ route('produk.index') }}">
                                     <i data-feather="users"></i>
-                                    <span>Akun</span>
+                                    <span>Produk</span>
                                 </a>
                             </li>
                         </ul>

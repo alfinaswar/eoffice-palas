@@ -53,7 +53,7 @@ class MasterJenisController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menambah master jenis produk baru: ' . $request->Nama);
 
@@ -85,7 +85,7 @@ class MasterJenisController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Mengupdate master jenis produk: ' . $request->Nama);
 
@@ -101,7 +101,7 @@ class MasterJenisController extends Controller
             return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
         }
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menghapus master jenis produk: ' . $jenis->Nama);
         $jenis->delete();

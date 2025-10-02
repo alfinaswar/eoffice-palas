@@ -53,7 +53,7 @@ class MasterProjekController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menambah master projek baru: ' . $request->NamaProyek);
 
@@ -85,7 +85,7 @@ class MasterProjekController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Mengupdate master projek: ' . $request->NamaProyek);
 
@@ -101,7 +101,7 @@ class MasterProjekController extends Controller
             return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
         }
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menghapus master projek: ' . $projek->NamaProyek);
         $projek->delete();

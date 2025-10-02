@@ -51,7 +51,7 @@ class MasterKantorController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menambah master kantor baru: ' . $request->Nama);
 
@@ -82,7 +82,7 @@ class MasterKantorController extends Controller
         ]);
 
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Memperbarui master kantor: ' . $request->Nama);
 
@@ -98,7 +98,7 @@ class MasterKantorController extends Controller
             return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
         }
         activity()
-            ->causedBy(auth()->user())
+            ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Menghapus master kantor: ' . $kantor->Nama);
         $kantor->delete();
