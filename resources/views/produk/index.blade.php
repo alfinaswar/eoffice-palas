@@ -41,13 +41,9 @@
                                     <th>Proyek</th>
                                     <th>Luas</th>
                                     <th>H. Meter</th>
-                                    <th>H. Kredit</th>
                                     <th>Dp</th>
                                     <th>Angsuran</th>
-                                    <th>Diskon</th>
                                     <th>H. Normal</th>
-                                    <th>H. Diskon</th>
-                                    <th>Keterangan</th>
                                     <th>Status</th>
                                     <th width="15%">Aksi</th>
                                 </tr>
@@ -160,10 +156,7 @@
                             data: 'HargaPerMeter',
                             name: 'HargaPerMeter'
                         },
-                        {
-                            data: 'HargaKredit',
-                            name: 'HargaKredit'
-                        },
+
                         {
                             data: 'Dp',
                             name: 'Dp'
@@ -172,22 +165,12 @@
                             data: 'BesarAngsuran',
                             name: 'BesarAngsuran'
                         },
-                        {
-                            data: 'Diskon',
-                            name: 'Diskon'
-                        },
+
                         {
                             data: 'HargaNormal',
                             name: 'HargaNormal'
                         },
-                        {
-                            data: 'HargaDiskon',
-                            name: 'HargaDiskon'
-                        },
-                        {
-                            data: 'Keterangan',
-                            name: 'Keterangan'
-                        },
+
                         {
                             data: 'Status',
                             name: 'Status'

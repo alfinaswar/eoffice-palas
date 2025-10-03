@@ -138,6 +138,7 @@
         <div class="sidebar-inner slimscroll">
             <div id="sidebar-menu" class="sidebar-menu">
                 <ul>
+
                     <li class="submenu-open">
                         <h6 class="submenu-hdr">Produk</h6>
                         <ul>
@@ -145,6 +146,17 @@
                                 <a href="{{ route('produk.index') }}">
                                     <i data-feather="users"></i>
                                     <span>Produk</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="submenu-open">
+                        <h6 class="submenu-hdr">Dokumen & Surat</h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('penawaran.index') }}">
+                                    <i data-feather="users"></i>
+                                    <span>Penawaran Harga</span>
                                 </a>
                             </li>
                         </ul>

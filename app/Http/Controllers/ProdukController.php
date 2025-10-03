@@ -7,6 +7,7 @@ use App\Models\MasterJenis;
 use App\Models\MasterProjek;
 use App\Models\Produk;
 use Illuminate\Http\Request;
+use Laraindo\RupiahFormat;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProdukController extends Controller
@@ -32,6 +33,18 @@ class ProdukController extends Controller
                 })
                 ->editColumn('Proyek', function ($row) {
                     return $row->getProyek ? $row->getProyek->NamaProyek : '-';
+                })
+                ->editColumn('HargaPerMeter', function ($row) {
+                    return RupiahFormat::currency($row->HargaPerMeter);
+                })
+                ->editColumn('Dp', function ($row) {
+                    return RupiahFormat::currency($row->Dp);
+                })
+                ->editColumn('BesarAngsuran', function ($row) {
+                    return RupiahFormat::currency($row->BesarAngsuran);
+                })
+                ->editColumn('HargaNormal', function ($row) {
+                    return RupiahFormat::currency($row->HargaNormal);
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -111,7 +124,7 @@ class ProdukController extends Controller
         if (isset($data['BesarAngsuran2'])) {
             $data['BesarAngsuran2'] = str_replace('.', '', $data['BesarAngsuran2']);
         }
-        // dd($data);
+        $data['KodeKantor'] = auth()->user()->KodeKantor;
         Produk::create($data);
 
         activity()
@@ -200,7 +213,7 @@ class ProdukController extends Controller
         if (isset($data['BesarAngsuran2'])) {
             $data['BesarAngsuran2'] = str_replace('.', '', $data['BesarAngsuran2']);
         }
-        // dd($data);
+        $data['KodeKantor'] = auth()->user()->KodeKantor;
         $produk->update($data);
 
         activity()

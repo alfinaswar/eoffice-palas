@@ -96,6 +96,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/show/{id}', [ProdukController::class, 'show'])->name('produk.show');
         Route::delete('/delete/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
     });
+    Route::prefix('pengajuan/penawaran-harga')->group(function () {
+        Route::get('/', [ProdukController::class, 'index'])->name('penawaran.index');
+        Route::get('/create', [ProdukController::class, 'create'])->name('penawaran.create');
+        Route::post('/store', [ProdukController::class, 'store'])->name('penawaran.store');
+        Route::get('/edit/{id}', [ProdukController::class, 'edit'])->name('penawaran.edit');
+        Route::put('/update/{id}', [ProdukController::class, 'update'])->name('penawaran.update');
+        Route::get('/show/{id}', [ProdukController::class, 'show'])->name('penawaran.show');
+        Route::delete('/delete/{id}', [ProdukController::class, 'destroy'])->name('penawaran.destroy');
+    });
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');
 Route::get('cities', [DependentDropdownController::class, 'cities'])->name('cities');
