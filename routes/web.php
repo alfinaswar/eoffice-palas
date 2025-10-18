@@ -98,13 +98,13 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/delete/{id}', [ProdukController::class, 'destroy'])->name('produk.destroy');
     });
     Route::prefix('pengajuan/penawaran-harga')->group(function () {
-        Route::get('/', [PenawaranHargaController::class, 'index'])->name('penawaran.index');
-        Route::get('/create', [PenawaranHargaController::class, 'create'])->name('penawaran.create');
-        Route::post('/store', [PenawaranHargaController::class, 'store'])->name('penawaran.store');
-        Route::get('/edit/{id}', [PenawaranHargaController::class, 'edit'])->name('penawaran.edit');
-        Route::put('/update/{id}', [PenawaranHargaController::class, 'update'])->name('penawaran.update');
-        Route::get('/show/{id}', [PenawaranHargaController::class, 'show'])->name('penawaran.show');
-        Route::delete('/delete/{id}', [PenawaranHargaController::class, 'destroy'])->name('penawaran.destroy');
+        Route::get('/', [PenawaranHargaController::class, 'index'])->name('penawaran-harga.index');
+        Route::get('/create', [PenawaranHargaController::class, 'create'])->name('penawaran-harga.create');
+        Route::post('/store', [PenawaranHargaController::class, 'store'])->name('penawaran-harga.store');
+        Route::get('/edit/{id}', [PenawaranHargaController::class, 'edit'])->name('penawaran-harga.edit');
+        Route::put('/update/{id}', [PenawaranHargaController::class, 'update'])->name('penawaran-harga.update');
+        Route::get('/show/{id}', [PenawaranHargaController::class, 'show'])->name('penawaran-harga.show');
+        Route::delete('/delete/{id}', [PenawaranHargaController::class, 'destroy'])->name('penawaran-harga.destroy');
     });
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');

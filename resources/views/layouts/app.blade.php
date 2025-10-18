@@ -154,7 +154,7 @@
                         <h6 class="submenu-hdr">Dokumen & Surat</h6>
                         <ul>
                             <li>
-                                <a href="{{ route('penawaran.index') }}">
+                                <a href="{{ route('penawaran-harga.index') }}">
                                     <i data-feather="users"></i>
                                     <span>Penawaran Harga</span>
                                 </a>

@@ -8,4 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class PenawaranHargaDetail extends Model
 {
     use HasFactory;
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'penawaran_harga_details';
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    protected $guarded = ['id'];
 }

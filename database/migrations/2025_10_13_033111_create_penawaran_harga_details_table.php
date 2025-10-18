@@ -16,11 +16,13 @@ return new class extends Migration {
             $table->String('IdProduk');
             $table->integer('Jumlah')->default(1);
             $table->String('Harga')->default(0);
+            $table->String('HargaPenawaran')->default(0);
             $table->String('Subtotal')->default(0);
             $table->String('Diskon')->default(0);
             $table->enum('JenisDiskon', ['Rp', 'Persen'])->nullable();
             $table->String('Total')->default(0);
             $table->text('Keterangan')->nullable();
+            $table->enum('Status', ['Y', 'N'])->nullable()->default('N');
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();
