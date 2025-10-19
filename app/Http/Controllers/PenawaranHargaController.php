@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PenawaranHarga;
 use App\Models\PenawaranHargaDetail;
 use App\Models\Produk;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -23,8 +24,9 @@ class PenawaranHargaController extends Controller
                 ->addColumn('action', function ($row) {
                     $encryptedId = encrypt($row->id);
                     return '
-                        <a href="' . route('penawaran-harga.edit', $encryptedId) . '" class="btn btn-sm btn-warning">Edit</a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="' . $encryptedId . '">Hapus</button>
+                        <a href="' . route('penawaran-harga.edit', $encryptedId) . '" class="btn btn-sm" style="background-color: #20c997; color: #fff; border-color: #20c997;">Edit</a>
+                        <a href="' . route('penawaran-harga.cetakPengajuan', $encryptedId) . '" class="btn btn-sm" style="background-color: #6f42c1; color: #fff; border-color: #6f42c1;" target="_blank">Cetak Dokumen</a>
+                        <button class="btn btn-sm btn-delete" style="background-color: #fd7e14; color: #fff; border-color: #fd7e14;" data-id="' . $encryptedId . '">Hapus</button>
                     ';
                 })
                 ->editColumn('Total', function ($row) {
@@ -33,7 +35,11 @@ class PenawaranHargaController extends Controller
                 ->editColumn('Tanggal', function ($row) {
                     return Carbon::parse($row->Tanggal)->translatedFormat('d F Y');
                 })
-                ->rawColumns(['action'])
+                ->addColumn('Nomor', function ($row) {
+                    $encryptedId = encrypt($row->id);
+                    return '<a href="' . route('penawaran-harga.show', $encryptedId) . '">' . e($row->Nomor) . '</a>';
+                })
+                ->rawColumns(['action', 'Nomor'])
                 ->make(true);
         }
         return view('penawaran-harga.index');
@@ -58,7 +64,6 @@ class PenawaranHargaController extends Controller
             'NamaPelanggan' => 'required|string|max:255',
             'Keterangan' => 'nullable|string',
             'IdProduk' => 'required|array|min:1',
-
         ]);
         $data = $request->all();
         $year = date('y');
@@ -110,9 +115,33 @@ class PenawaranHargaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PenawaranHarga $penawaranHarga)
+    public function show($id)
     {
-        //
+        $id = decrypt($id);
+        $produk = Produk::get();
+        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+
+        return view('penawaran-harga.show', compact('penawaran', 'produk'));
+    }
+
+    public function AccPengajuan($id)
+    {
+        $id = decrypt($id);
+        $penawaran = PenawaranHarga::findOrFail($id);
+
+        $penawaran->StatusAcc1 = 'Y';
+        $penawaran->DisetujuiPada1 = now();
+        $penawaran->DisetujuiOleh1 = auth()->user()->id;
+        $penawaran->save();
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Menyetujui pengajuan penawaran harga: ' . $penawaran->Nomor);
+
+        return redirect()
+            ->route('penawaran-harga.index')
+            ->with('success', 'Penawaran harga berhasil disetujui.');
     }
 
     /**
@@ -127,12 +156,70 @@ class PenawaranHargaController extends Controller
         return view('penawaran-harga.edit', compact('penawaran', 'produk'));
     }
 
+    public function DownloadPengajuan($id)
+    {
+        $id = decrypt($id);
+        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+        $produk = Produk::get();
+
+        $pdfView = view('penawaran-harga.cetak-pdf', compact('penawaran', 'produk'))->render();
+
+        $pdf = Pdf::loadHTML($pdfView);
+
+        $filename = 'Penawaran_Harga_' . $penawaran->Nomor . '.pdf';
+
+        // download PDF
+        return $pdf->download($filename);
+    }
+
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PenawaranHarga $penawaranHarga)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'Tanggal' => 'required|date',
+            'NamaPelanggan' => 'required|string|max:255',
+            'Keterangan' => 'nullable|string',
+            'IdProduk' => 'required|array|min:1',
+        ]);
+
+        $data = $request->all();
+        $id = decrypt($id);
+
+        // Update header penawaran
+        $header = PenawaranHarga::findOrFail($id);
+        $header->Tanggal = $data['Tanggal'];
+        $header->NamaPelanggan = $data['NamaPelanggan'];
+        $header->Total = str_replace('.', '', $data['Total']);
+        $header->Keterangan = $data['Keterangan'] ?? null;
+        $header->save();
+
+        // Hapus semua detail sebelumnya
+        PenawaranHargaDetail::where('IdPenawaran', $header->id)->delete();
+
+        // Buat ulang detail penawaran
+        if (isset($data['IdProduk']) && is_array($data['IdProduk'])) {
+            $count = count($data['IdProduk']);
+            for ($i = 0; $i < $count; $i++) {
+                PenawaranHargaDetail::create([
+                    'IdPenawaran' => $header->id,
+                    'IdProduk' => $data['IdProduk'][$i],
+                    'Jumlah' => isset($data['Jumlah'][$i]) ? $data['Jumlah'][$i] : 1,
+                    'Harga' => isset($data['HargaAsli'][$i]) ? str_replace('.', '', $data['HargaAsli'][$i]) : 0,
+                    'HargaPenawaran' => isset($data['Harga'][$i]) ? str_replace('.', '', $data['Harga'][$i]) : 0,
+                    'Subtotal' => isset($data['Subtotal'][$i]) ? str_replace('.', '', $data['Subtotal'][$i]) : 0,
+                    'Diskon' => isset($data['Diskon'][$i]) ? $data['Diskon'][$i] : 0,
+                    'JenisDiskon' => isset($data['JenisDiskon'][$i]) ? $data['JenisDiskon'][$i] : null,
+                ]);
+            }
+        }
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Mengupdate penawaran harga: ' . $header->Nomor . ' untuk pelanggan: ' . $header->NamaPelanggan);
+        return redirect()->route('penawaran-harga.index')->with('success', 'Penawaran harga berhasil diperbarui.');
     }
 
     /**

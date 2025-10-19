@@ -1,31 +1,31 @@
 <?php
 
+use App\Http\Controllers\BookingListController;
 use App\Http\Controllers\DependentDropdownController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MasterBankController;
 use App\Http\Controllers\MasterGradeController;
 use App\Http\Controllers\MasterJenisController;
 use App\Http\Controllers\MasterKantorController;
 use App\Http\Controllers\MasterProjekController;
 use App\Http\Controllers\PenawaranHargaController;
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+ * |--------------------------------------------------------------------------
+ * | Web Routes
+ * |--------------------------------------------------------------------------
+ * |
+ * | Here is where you can register web routes for your application. These
+ * | routes are loaded by the RouteServiceProvider and all of them will
+ * | be assigned to the "web" middleware group. Make something great!
+ * |
+ */
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,7 +40,6 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('users', UserController::class);
 
     Route::prefix('master/bank')->group(function () {
-
         Route::get('/', [MasterBankController::class, 'index'])->name('master-bank.index');
         Route::get('/create', [MasterBankController::class, 'create'])->name('master-bank.create');
         Route::post('/store', [MasterBankController::class, 'store'])->name('master-bank.store');
@@ -50,7 +49,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/delete/{id}', [MasterBankController::class, 'destroy'])->name('master-bank.destroy');
     });
     Route::prefix('master/kantor')->group(function () {
-
         Route::get('/', [MasterKantorController::class, 'index'])->name('master-kantor.index');
         Route::get('/create', [MasterKantorController::class, 'create'])->name('master-kantor.create');
         Route::post('/store', [MasterKantorController::class, 'store'])->name('master-kantor.store');
@@ -70,7 +68,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/delete/{id}', [MasterProjekController::class, 'destroy'])->name('master-proyek.destroy');
     });
     Route::prefix('master/grade')->group(function () {
-
         Route::get('/', [MasterGradeController::class, 'index'])->name('master-grade.index');
         Route::get('/create', [MasterGradeController::class, 'create'])->name('master-grade.create');
         Route::post('/store', [MasterGradeController::class, 'store'])->name('master-grade.store');
@@ -102,9 +99,20 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create', [PenawaranHargaController::class, 'create'])->name('penawaran-harga.create');
         Route::post('/store', [PenawaranHargaController::class, 'store'])->name('penawaran-harga.store');
         Route::get('/edit/{id}', [PenawaranHargaController::class, 'edit'])->name('penawaran-harga.edit');
+        Route::get('/cetak-dokumen/{id}', [PenawaranHargaController::class, 'DownloadPengajuan'])->name('penawaran-harga.cetakPengajuan');
+        Route::POST('/acc-pengajuan/{id}', [PenawaranHargaController::class, 'AccPengajuan'])->name('penawaran-harga.persetujuan');
         Route::put('/update/{id}', [PenawaranHargaController::class, 'update'])->name('penawaran-harga.update');
         Route::get('/show/{id}', [PenawaranHargaController::class, 'show'])->name('penawaran-harga.show');
         Route::delete('/delete/{id}', [PenawaranHargaController::class, 'destroy'])->name('penawaran-harga.destroy');
+    });
+    Route::prefix('booking-list')->group(function () {
+        Route::get('/', [BookingListController::class, 'index'])->name('booking-list.index');
+        Route::get('/create', [BookingListController::class, 'create'])->name('booking-list.create');
+        Route::post('/store', [BookingListController::class, 'store'])->name('booking-list.store');
+        Route::get('/edit/{id}', [BookingListController::class, 'edit'])->name('booking-list.edit');
+        Route::put('/update/{id}', [BookingListController::class, 'update'])->name('booking-list.update');
+        Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
+        Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
     });
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');

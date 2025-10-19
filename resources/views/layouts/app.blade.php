@@ -46,13 +46,13 @@
 
             <!-- Logo -->
             <div class="header-left active">
-                <a href="{{route('home')}}" class="logo logo-normal">
+                <a href="{{ route('home') }}" class="logo logo-normal">
                     <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
                 </a>
-                <a href="{{route('home')}}" class="logo logo-white">
+                <a href="{{ route('home') }}" class="logo logo-white">
                     <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
                 </a>
-                <a href="{{route('home')}}" class="logo-small">
+                <a href="{{ route('home') }}" class="logo-small">
                     <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
                 </a>
                 <a id="toggle_btn" href="javascript:void(0);">
@@ -157,6 +157,12 @@
                                 <a href="{{ route('penawaran-harga.index') }}">
                                     <i data-feather="users"></i>
                                     <span>Penawaran Harga</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('booking-list.index') }}">
+                                    <i data-feather="users"></i>
+                                    <span>Booking List</span>
                                 </a>
                             </li>
                         </ul>
@@ -641,7 +647,8 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>App Settings</span><span class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>App Settings</span><span
+                                    class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="invoice-settings.html">Invoice</a></li>
                                 <li><a href="printer-settings.html">Printer</a></li>
@@ -879,7 +886,8 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>Primary Icons</span><span class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>Primary Icons</span><span
+                                    class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="icon-fontawesome.html">Fontawesome Icons</a></li>
                                 <li><a href="icon-feather.html">Feather Icons</a></li>
@@ -939,7 +947,8 @@
                     </ul>
                 </li>
                 <li class="submenu">
-                    <a href="javascript:void(0);" class="active subdrop"><i data-feather="user"></i><span>Profile</span>
+                    <a href="javascript:void(0);" class="active subdrop"><i
+                            data-feather="user"></i><span>Profile</span>
                         <span class="menu-arrow"></span></a>
                     <ul>
                         <li><a href="profile.html"><span>Profile</span></a></li>
@@ -1102,7 +1111,8 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>App Settings</span><span class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>App Settings</span><span
+                                    class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="invoice-settings.html">Invoice</a></li>
                                 <li><a href="printer-settings.html">Printer</a></li>
