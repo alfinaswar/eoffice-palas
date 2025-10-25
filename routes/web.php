@@ -99,15 +99,17 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create', [PenawaranHargaController::class, 'create'])->name('penawaran-harga.create');
         Route::post('/store', [PenawaranHargaController::class, 'store'])->name('penawaran-harga.store');
         Route::get('/edit/{id}', [PenawaranHargaController::class, 'edit'])->name('penawaran-harga.edit');
+        Route::get('/approval/{id}', [PenawaranHargaController::class, 'Approval'])->name('penawaran-harga.Approval');
         Route::get('/cetak-dokumen/{id}', [PenawaranHargaController::class, 'DownloadPengajuan'])->name('penawaran-harga.cetakPengajuan');
         Route::POST('/acc-pengajuan/{id}', [PenawaranHargaController::class, 'AccPengajuan'])->name('penawaran-harga.persetujuan');
         Route::put('/update/{id}', [PenawaranHargaController::class, 'update'])->name('penawaran-harga.update');
+        Route::put('/update-approval/{id}', [PenawaranHargaController::class, 'UpdateApproval'])->name('penawaran-harga.update-approval');
         Route::get('/show/{id}', [PenawaranHargaController::class, 'show'])->name('penawaran-harga.show');
         Route::delete('/delete/{id}', [PenawaranHargaController::class, 'destroy'])->name('penawaran-harga.destroy');
     });
     Route::prefix('booking-list')->group(function () {
         Route::get('/', [BookingListController::class, 'index'])->name('booking-list.index');
-        Route::get('/create', [BookingListController::class, 'create'])->name('booking-list.create');
+        Route::get('/create/{id}', [BookingListController::class, 'create'])->name('booking-list.create');
         Route::post('/store', [BookingListController::class, 'store'])->name('booking-list.store');
         Route::get('/edit/{id}', [BookingListController::class, 'edit'])->name('booking-list.edit');
         Route::put('/update/{id}', [BookingListController::class, 'update'])->name('booking-list.update');

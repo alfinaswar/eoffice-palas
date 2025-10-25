@@ -26,6 +26,7 @@ class PenawaranHargaController extends Controller
                     return '
                         <a href="' . route('penawaran-harga.edit', $encryptedId) . '" class="btn btn-sm" style="background-color: #20c997; color: #fff; border-color: #20c997;">Edit</a>
                         <a href="' . route('penawaran-harga.cetakPengajuan', $encryptedId) . '" class="btn btn-sm" style="background-color: #6f42c1; color: #fff; border-color: #6f42c1;" target="_blank">Cetak Dokumen</a>
+                        <a href="' . route('penawaran-harga.Approval', $encryptedId) . '" class="btn btn-sm btn-warning">Approval</a>
                         <button class="btn btn-sm btn-delete" style="background-color: #fd7e14; color: #fff; border-color: #fd7e14;" data-id="' . $encryptedId . '">Hapus</button>
                     ';
                 })
@@ -155,6 +156,14 @@ class PenawaranHargaController extends Controller
 
         return view('penawaran-harga.edit', compact('penawaran', 'produk'));
     }
+    public function Approval($id)
+    {
+        $id = decrypt($id);
+        $produk = Produk::get();
+        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+
+        return view('penawaran-harga.approval-harga', compact('penawaran', 'produk'));
+    }
 
     public function DownloadPengajuan($id)
     {
@@ -214,6 +223,36 @@ class PenawaranHargaController extends Controller
                 ]);
             }
         }
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Mengupdate penawaran harga: ' . $header->Nomor . ' untuk pelanggan: ' . $header->NamaPelanggan);
+        return redirect()->route('penawaran-harga.index')->with('success', 'Penawaran harga berhasil diperbarui.');
+    }
+    public function UpdateApproval(Request $request, $id)
+    {
+        $request->validate([
+            'Tanggal' => 'required|date',
+            'NamaPelanggan' => 'required|string|max:255',
+            'Keterangan' => 'nullable|string',
+        ]);
+
+        $data = $request->all();
+        $id = decrypt($id);
+
+        // Update header penawaran
+        $header = PenawaranHarga::findOrFail($id);
+        $header->Tanggal = $data['Tanggal'];
+        $header->NamaPelanggan = $data['NamaPelanggan'];
+        $header->Total = str_replace('.', '', $data['Total']);
+        $header->Keterangan = $data['Keterangan'] ?? null;
+        $header->save();
+
+        PenawaranHargaDetail::where('IdPenawaran', $header->id)
+            ->where('id', $request->ApproveRadio)
+            ->update(['Status' => 'Y']);
+
 
         activity()
             ->causedBy(auth()->user()->id)

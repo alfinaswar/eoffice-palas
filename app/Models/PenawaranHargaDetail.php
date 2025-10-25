@@ -20,4 +20,10 @@ class PenawaranHargaDetail extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+
+    public function getProduk()
+    {
+        return $this->hasOne(Produk::class, 'id', 'IdProduk');
+    }
 }
