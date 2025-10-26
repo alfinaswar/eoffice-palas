@@ -12,6 +12,7 @@ use App\Http\Controllers\PenawaranHargaController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -112,9 +113,20 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create/{id}', [BookingListController::class, 'create'])->name('booking-list.create');
         Route::post('/store', [BookingListController::class, 'store'])->name('booking-list.store');
         Route::get('/edit/{id}', [BookingListController::class, 'edit'])->name('booking-list.edit');
+        Route::get('/cetak-bukti-pembayaran/{id}', [BookingListController::class, 'PrintKwitansi'])->name('booking-list.print');
         Route::put('/update/{id}', [BookingListController::class, 'update'])->name('booking-list.update');
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
+    });
+    Route::prefix('transaksi')->group(function () {
+        Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
+        Route::get('/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');
+        Route::post('/store', [TransaksiController::class, 'store'])->name('transaksi.store');
+        Route::get('/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
+        Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
+        Route::put('/update/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
+        Route::get('/show/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
+        Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     });
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');

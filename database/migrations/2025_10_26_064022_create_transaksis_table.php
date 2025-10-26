@@ -10,20 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('booking_lists', function (Blueprint $table) {
+        Schema::create('Transaksi', function (Blueprint $table) {
             $table->id();
+            $table->string('KodeTransaksi', 50)->unique();
             $table->string('IdPenawaran')->nullable();
-            $table->string('Nomor', 50)->unique();
+            $table->string('IdBooking')->nullable();
             $table->string('IdProduk')->nullable();
-            $table->string('NamaPelanggan')->nullable();
-            $table->date('Tanggal')->nullable();
-            $table->string('Total')->nullable();
-            $table->enum('JenisPembayaran', ['Transfer', 'Tunai', 'CashTempo', 'Kredit'])->nullable();
+            $table->date('TanggalTransaksi')->nullable();
+            $table->string('IdPelanggan')->nullable();
+            $table->string('IdPetugas')->nullable();
+            $table->enum('JenisTransaksi', ['Cash', 'Cicilan'])->nullable();
+            $table->string('TotalHarga')->default('0')->nullable();
+            $table->string('UangMuka')->default('0')->nullable();
+            $table->string('SisaBayar')->default('0')->nullable();
+            $table->enum('StatusPembayaran', ['Lunas', 'BelumLunas'])->default('BelumLunas');
             $table->text('Keterangan')->nullable();
-            $table->string('Penerima')->nullable();
-            $table->dateTime('DiterimaPada')->nullable();
-            $table->string('Penyetor')->nullable();
-            $table->dateTime('DiserahkanPada')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();
@@ -37,6 +38,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('booking_lists');
+        Schema::dropIfExists('transaksis');
     }
 };

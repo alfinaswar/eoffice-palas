@@ -165,6 +165,12 @@
                                     <span>Booking List</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('transaksi.index') }}">
+                                    <i data-feather="users"></i>
+                                    <span>Pembayaran</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="submenu-open">

@@ -7,6 +7,7 @@ use App\Models\MasterBank;
 use App\Models\PenawaranHarga;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Pdf;
 
 class BookingListController extends Controller
 {
@@ -23,6 +24,7 @@ class BookingListController extends Controller
                     $encryptedId = encrypt($row->id);
                     return '
                         <a href="' . route('booking-list.edit', $encryptedId) . '" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="' . route('booking-list.print', $encryptedId) . '" class="btn btn-sm btn-primary" target="_blank">Cetak Kwitansi</a>
                         <button class="btn btn-sm btn-danger btn-delete" data-id="' . $encryptedId . '">Hapus</button>
                     ';
                 })
@@ -31,6 +33,20 @@ class BookingListController extends Controller
         }
         $penawaran = PenawaranHarga::latest()->get();
         return view('booking-list.index', compact('penawaran'));
+    }
+
+    /**
+     * Cetak kwitansi booking.
+     */
+    public function print($id)
+    {
+        $id = decrypt($id);
+        $booking = BookingList::findOrFail($id);
+
+        // Jika ingin menambahkan data Penawaran atau relasi lain, tambahkan di sini
+        // $booking = BookingList::with('Penawaran', ...)->findOrFail($id);
+
+        return view('booking-list.print', compact('booking'));
     }
 
     /**
@@ -80,9 +96,11 @@ class BookingListController extends Controller
             'Penyetor' => $data['Penyetor'],
         ]);
 
-        return redirect()->route('booking-list.index')
+        return redirect()
+            ->route('booking-list.index')
             ->with('success', 'Booking List berhasil disimpan.');
     }
+
     private function generateNomorBooking()
     {
         $year = now()->format('y');
@@ -115,9 +133,26 @@ class BookingListController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(BookingList $bookingList)
+    public function edit($id)
     {
-        //
+        $id = decrypt($id);
+        $bookingList = BookingList::findOrFail($id);
+        return view('booking-list.edit', compact('bookingList'));
+    }
+
+    public function PrintKwitansi($id)
+    {
+        $id = decrypt($id);
+        $data = BookingList::find($id);
+
+        // Custom paper size: A4 width, half A4 height (21cm x 14.85cm)
+        $customPaper = array(0, 0, 595.28, 419.53);  // in points (A4 width x half A4 height)
+        // 1 cm = 28.3465 points; 21cm = 595.28pt, 14.85cm = 419.53pt
+
+        $pdf = \PDF::loadView('booking-list.cetak-kwitansi', compact('data'))
+            ->setPaper($customPaper);
+
+        return $pdf->download('kwitansi-booking-' . $data->Nomor . '.pdf');
     }
 
     /**
@@ -131,8 +166,20 @@ class BookingListController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BookingList $bookingList)
+    public function destroy($id)
     {
-        //
+        $id = decrypt($id);
+        $Booking = BookingList::find($id);
+
+        if (!$Booking) {
+            return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
+        }
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Menghapus master Booking: ' . $Booking->NamaProyek);
+        $Booking->delete();
+
+        return response()->json(['status' => 200, 'message' => 'Master projek berhasil dihapus']);
     }
 }
