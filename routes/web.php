@@ -3,7 +3,9 @@
 use App\Http\Controllers\BookingListController;
 use App\Http\Controllers\DependentDropdownController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MasterAngsuranController;
 use App\Http\Controllers\MasterBankController;
+use App\Http\Controllers\MasterCustomer;
 use App\Http\Controllers\MasterGradeController;
 use App\Http\Controllers\MasterJenisController;
 use App\Http\Controllers\MasterKantorController;
@@ -49,6 +51,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/show/{id}', [MasterBankController::class, 'show'])->name('master-bank.show');
         Route::delete('/delete/{id}', [MasterBankController::class, 'destroy'])->name('master-bank.destroy');
     });
+    Route::prefix('master/customer')->group(function () {
+        Route::get('/', [MasterCustomer::class, 'index'])->name('customer.index');
+        Route::get('/create', [MasterCustomer::class, 'create'])->name('customer.create');
+        Route::post('/store', [MasterCustomer::class, 'store'])->name('customer.store');
+        Route::get('/edit/{id}', [MasterCustomer::class, 'edit'])->name('customer.edit');
+        Route::put('/update/{id}', [MasterCustomer::class, 'update'])->name('customer.update');
+        Route::get('/show/{id}', [MasterCustomer::class, 'show'])->name('customer.show');
+        Route::delete('/delete/{id}', [MasterCustomer::class, 'destroy'])->name('customer.destroy');
+    });
     Route::prefix('master/kantor')->group(function () {
         Route::get('/', [MasterKantorController::class, 'index'])->name('master-kantor.index');
         Route::get('/create', [MasterKantorController::class, 'create'])->name('master-kantor.create');
@@ -76,6 +87,14 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/update/{id}', [MasterGradeController::class, 'update'])->name('master-grade.update');
         Route::get('/show/{id}', [MasterGradeController::class, 'show'])->name('master-grade.show');
         Route::delete('/delete/{id}', [MasterGradeController::class, 'destroy'])->name('master-grade.destroy');
+    });
+    Route::prefix('master/angsuran')->group(function () {
+        Route::get('/', [MasterAngsuranController::class, 'index'])->name('master-angsuran.index');
+        Route::get('/create', [MasterAngsuranController::class, 'create'])->name('master-angsuran.create');
+        Route::post('/store', [MasterAngsuranController::class, 'store'])->name('master-angsuran.store');
+        Route::get('/edit/{id}', [MasterAngsuranController::class, 'edit'])->name('master-angsuran.edit');
+        Route::put('/update/{id}', [MasterAngsuranController::class, 'update'])->name('master-angsuran.update');
+        Route::delete('/delete/{id}', [MasterAngsuranController::class, 'destroy'])->name('master-angsuran.destroy');
     });
     Route::prefix('master/jenis-produk')->group(function () {
         Route::get('/', [MasterJenisController::class, 'index'])->name('master-jenis-produk.index');
@@ -126,8 +145,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
         Route::put('/update/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
         Route::get('/show/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
+        Route::get('/daftar-tagihan/{id}', [TransaksiController::class, 'Tagihan'])->name('transaksi.list-tagihan');
         Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     });
+
 });
 Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');
 Route::get('cities', [DependentDropdownController::class, 'cities'])->name('cities');

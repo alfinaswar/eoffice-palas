@@ -38,13 +38,17 @@
 
                             <div class="col-md-8">
                                 <label for="NamaPelanggan" class="form-label fw-semibold">Nama Pelanggan</label>
-                                <input type="text" name="NamaPelanggan" id="NamaPelanggan"
-                                    class="form-control @error('NamaPelanggan') is-invalid @enderror"
-                                    placeholder="Nama Pelanggan"
-                                    value="{{ old('NamaPelanggan', $penawaran->NamaPelanggan) }}">
-                                @error('NamaPelanggan')
-                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                @enderror
+                                <select name="NamaPelanggan" id="NamaPelanggan"
+                                    class="form-select select2 @error('NamaPelanggan') is-invalid @enderror"
+                                    data-placeholder="Pilih Pelanggan">
+                                    <option value="">Pilih Pelanggan</option>
+                                    @foreach($customer as $cust)
+                                        <option value="{{ $cust->id }}" {{ old('NamaPelanggan', $penawaran->NamaPelanggan) == $cust->id ? 'selected' : '' }}>
+                                            {{ $cust->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('NamaPelanggan')<div class="text-danger mt-1">{{ $message }}</div>@enderror
                             </div>
 
                             <div class="col-12">

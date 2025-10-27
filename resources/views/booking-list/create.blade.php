@@ -119,9 +119,11 @@
                                     <div class="col-md-3">
                                         <label for="NamaPelangganPenawaran" class="form-label"><strong>Nama
                                                 Pelanggan</strong></label>
-                                        <input type="text" class="form-control" id="NamaPelangganPenawaran"
-                                            name="NamaPelangganPenawaran" value="{{ $penawaran->NamaPelanggan ?? '-' }}"
+                                        <input type="text" class="form-control" id="NamaPelangganPenawaranDisplay"
+                                            value="{{ optional($customer->where('id', old('NamaPelangganPenawaran', $penawaran->NamaPelanggan ?? null))->first())->name ?? '-' }}"
                                             readonly>
+                                        <input type="hidden" name="NamaPelangganPenawaran"
+                                            value="{{ old('NamaPelangganPenawaran', $penawaran->NamaPelanggan ?? '') }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label for="NamaProdukPenawaran" class="form-label"><strong>Nama

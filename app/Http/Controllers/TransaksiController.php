@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookingList;
 use App\Models\Transaksi;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -30,15 +31,18 @@ class TransaksiController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        return view('transaksi.index');
+        $booking = BookingList::with('getProduk', 'getCustomer')->latest()->get();
+        return view('transaksi.index', compact('booking'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($id)
     {
-        //
+        $id = decrypt($id);
+        $booking = BookingList::find($id);
+        return view('transaksi.create', compact('booking'));
     }
 
     /**
@@ -47,6 +51,10 @@ class TransaksiController extends Controller
     public function store(Request $request)
     {
         //
+    }
+    public function Tagihan($id)
+    {
+        dd($id);
     }
 
     /**

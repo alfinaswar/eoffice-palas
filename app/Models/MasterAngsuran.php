@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PenawaranHarga extends Model
+class MasterAngsuran extends Model
 {
     use HasFactory, SoftDeletes;
     /**
@@ -14,16 +14,11 @@ class PenawaranHarga extends Model
      *
      * @var string
      */
-    protected $table = 'penawaran_hargas';
+    protected $table = 'master_angsurans';
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
     protected $guarded = ['id'];
-
-    public function DetailPenawaran()
-    {
-        return $this->hasMany(PenawaranHargaDetail::class, 'IdPenawaran', 'id');
-    }
-
-    public function getCustomer()
-    {
-        return $this->hasOne(User::class, 'id', 'NamaPelanggan');
-    }
 }

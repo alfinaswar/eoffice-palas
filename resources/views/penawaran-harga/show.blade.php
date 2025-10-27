@@ -32,7 +32,7 @@
 
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Nama Pelanggan</label>
-                            <input type="text" class="form-control" value="{{ $penawaran->NamaPelanggan }}" readonly>
+                            <input type="text" class="form-control" value="{{ $penawaran->getCustomer->name }}" readonly>
                         </div>
 
                         <div class="col-12">
@@ -75,8 +75,7 @@
                                                 value="{{ number_format($d->Harga, 0, ',', '.') }}" readonly>
                                         </td>
                                         <td>
-                                            <input type="text" class="form-control text-end" value="{{ $d->Diskon }}"
-                                                readonly>
+                                            <input type="text" class="form-control text-end" value="{{ $d->Diskon }}" readonly>
                                         </td>
                                         <td>
                                             <input type="text" class="form-control text-center"

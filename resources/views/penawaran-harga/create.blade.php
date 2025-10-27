@@ -35,9 +35,16 @@
 
                             <div class="col-md-8">
                                 <label for="NamaPelanggan" class="form-label fw-semibold">Nama Pelanggan</label>
-                                <input type="text" name="NamaPelanggan" id="NamaPelanggan"
-                                    class="form-control @error('NamaPelanggan') is-invalid @enderror"
-                                    placeholder="Nama Pelanggan" value="{{ old('NamaPelanggan') }}">
+                                <select name="NamaPelanggan" id="NamaPelanggan"
+                                    class="form-select select2 @error('NamaPelanggan') is-invalid @enderror"
+                                    data-placeholder="Pilih Pelanggan">
+                                    <option value="">Pilih Pelanggan</option>
+                                    @foreach($customer as $cust)
+                                        <option value="{{ $cust->id }}" {{ old('NamaPelanggan') == $cust->id ? 'selected' : '' }}>
+                                            {{ $cust->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('NamaPelanggan')<div class="text-danger mt-1">{{ $message }}</div>@enderror
                             </div>
 
@@ -51,7 +58,6 @@
                         </div>
 
                         <hr class="mb-4">
-
                         <h5 class="mb-3 fw-bold">Detail Produk</h5>
                         <div class="table-responsive mb-2">
                             <table class="table table-sm table-hover align-middle border rounded-1" id="table-produk">

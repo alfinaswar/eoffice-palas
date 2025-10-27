@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PenawaranHarga;
 use App\Models\PenawaranHargaDetail;
 use App\Models\Produk;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class PenawaranHargaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = PenawaranHarga::with('DetailPenawaran')->latest();
+            $data = PenawaranHarga::with('DetailPenawaran', 'getCustomer')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -40,6 +41,9 @@ class PenawaranHargaController extends Controller
                     $encryptedId = encrypt($row->id);
                     return '<a href="' . route('penawaran-harga.show', $encryptedId) . '">' . e($row->Nomor) . '</a>';
                 })
+                ->editColumn('NamaPelanggan', function ($row) {
+                    return optional($row->getCustomer)->name ?? $row->NamaPelanggan;
+                })
                 ->rawColumns(['action', 'Nomor'])
                 ->make(true);
         }
@@ -52,7 +56,8 @@ class PenawaranHargaController extends Controller
     public function create()
     {
         $produk = Produk::get();
-        return view('penawaran-harga.create', compact('produk'));
+        $customer = User::where('jenis_user', 'Customer')->get();
+        return view('penawaran-harga.create', compact('produk', 'customer'));
     }
 
     /**
@@ -120,7 +125,7 @@ class PenawaranHargaController extends Controller
     {
         $id = decrypt($id);
         $produk = Produk::get();
-        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+        $penawaran = PenawaranHarga::with('DetailPenawaran', 'getCustomer')->findOrFail($id);
 
         return view('penawaran-harga.show', compact('penawaran', 'produk'));
     }
@@ -152,15 +157,16 @@ class PenawaranHargaController extends Controller
     {
         $id = decrypt($id);
         $produk = Produk::get();
-        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+        $customer = User::where('jenis_user', 'Customer')->get();
+        $penawaran = PenawaranHarga::with('DetailPenawaran', 'getCustomer')->findOrFail($id);
 
-        return view('penawaran-harga.edit', compact('penawaran', 'produk'));
+        return view('penawaran-harga.edit', compact('penawaran', 'produk', 'customer'));
     }
     public function Approval($id)
     {
         $id = decrypt($id);
         $produk = Produk::get();
-        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+        $penawaran = PenawaranHarga::with('DetailPenawaran', 'getCustomer')->findOrFail($id);
 
         return view('penawaran-harga.approval-harga', compact('penawaran', 'produk'));
     }
@@ -168,7 +174,7 @@ class PenawaranHargaController extends Controller
     public function DownloadPengajuan($id)
     {
         $id = decrypt($id);
-        $penawaran = PenawaranHarga::with('DetailPenawaran')->findOrFail($id);
+        $penawaran = PenawaranHarga::with('DetailPenawaran', 'getCustomer')->findOrFail($id);
         $produk = Produk::get();
 
         $pdfView = view('penawaran-harga.cetak-pdf', compact('penawaran', 'produk'))->render();

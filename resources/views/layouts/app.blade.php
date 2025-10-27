@@ -225,6 +225,16 @@
                                             <span>Master Jenis Produk</span>
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('customer.index') }}">
+                                            <span>Master Customer</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('master-angsuran.index') }}">
+                                            <span>Master Angsuran</span>
+                                        </a>
+                                    </li>
                                     {{-- Tambahkan menu master data lain di sini jika diperlukan --}}
                                 </ul>
                             </li>
@@ -653,8 +663,7 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>App Settings</span><span
-                                    class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>App Settings</span><span class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="invoice-settings.html">Invoice</a></li>
                                 <li><a href="printer-settings.html">Printer</a></li>
@@ -892,8 +901,7 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>Primary Icons</span><span
-                                    class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>Primary Icons</span><span class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="icon-fontawesome.html">Fontawesome Icons</a></li>
                                 <li><a href="icon-feather.html">Feather Icons</a></li>
@@ -953,8 +961,7 @@
                     </ul>
                 </li>
                 <li class="submenu">
-                    <a href="javascript:void(0);" class="active subdrop"><i
-                            data-feather="user"></i><span>Profile</span>
+                    <a href="javascript:void(0);" class="active subdrop"><i data-feather="user"></i><span>Profile</span>
                         <span class="menu-arrow"></span></a>
                     <ul>
                         <li><a href="profile.html"><span>Profile</span></a></li>
@@ -1117,8 +1124,7 @@
                             </ul>
                         </li>
                         <li class="submenu">
-                            <a href="javascript:void(0);"><span>App Settings</span><span
-                                    class="menu-arrow"></span></a>
+                            <a href="javascript:void(0);"><span>App Settings</span><span class="menu-arrow"></span></a>
                             <ul>
                                 <li><a href="invoice-settings.html">Invoice</a></li>
                                 <li><a href="printer-settings.html">Printer</a></li>

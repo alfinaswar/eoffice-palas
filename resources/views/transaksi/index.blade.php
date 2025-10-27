@@ -10,9 +10,85 @@
                     <li class="breadcrumb-item active">Transaksi</li>
                 </ul>
             </div>
+
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col text-end">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAmbilBooking">
+                Ambil Data Booking
+            </button>
         </div>
     </div>
 
+    <!-- Modal Ambil Data Booking -->
+    <div class="modal fade" id="modalAmbilBooking" tabindex="-1" aria-labelledby="modalAmbilBookingLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <!-- Modal tengah horizontal dan vertikal -->
+            <div class="modal-content" style="margin: auto;">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title w-100 text-center" id="modalAmbilBookingLabel">Ambil Data Booking</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table datanew cell-border compact stripe" id="bookingTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nomor Booking</th>
+                                    <th>Nama Pelanggan</th>
+                                    <th>Produk</th>
+                                    <th>Tanggal</th>
+                                    <th>Total</th>
+                                    <th>Penyetor</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php $no = 1; @endphp
+                                @foreach($booking as $item)
+                                    <tr>
+                                        <td>{{ $no++ }}</td>
+                                        <td>{{ $item->Nomor ?? '-' }}</td>
+                                        <td>{{ $item->NamaPelanggan ?? '-' }}</td>
+                                        <td>
+                                            @if(isset($item->getProduk))
+                                                {{ $item->getProduk->Nama }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>{{ $item->Tanggal ? \Carbon\Carbon::parse($item->Tanggal)->format('d-m-Y') : '-' }}
+                                        </td>
+                                        <td class="text-end">Rp{{ number_format($item->Total ?? 0, 0, ',', '.') }}</td>
+                                        <td>{{ $item->Penyetor ?? '-' }}</td>
+                                        <td>
+                                            <a href="{{ route('transaksi.create', encrypt($item->id)) }}"
+                                                class="btn btn-sm btn-success">
+                                                Ambil
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <script>
+                        $(function () {
+                            $('#bookingTable').DataTable({
+                                ordering: true,
+                                pageLength: 5,
+                                lengthChange: false,
+                            });
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -57,7 +133,7 @@
         </script>
     @endif
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             function loadDataTable() {
                 $('#usersTable').DataTable({
                     responsive: true,
@@ -75,29 +151,29 @@
                         }
                     },
                     columns: [{
-                            data: 'DT_RowIndex',
-                            name: 'DT_RowIndex',
-                            orderable: false,
-                            searchable: false
-                        },
-                        {
-                            data: 'name',
-                            name: 'name'
-                        },
-                        {
-                            data: 'email',
-                            name: 'email'
-                        },
-                        {
-                            data: 'created_at',
-                            name: 'created_at'
-                        },
-                        {
-                            data: 'action',
-                            name: 'action',
-                            orderable: false,
-                            searchable: false
-                        }
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'name',
+                        name: 'name'
+                    },
+                    {
+                        data: 'email',
+                        name: 'email'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
                     ]
                 });
             }

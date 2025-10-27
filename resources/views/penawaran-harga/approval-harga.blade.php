@@ -38,10 +38,11 @@
 
                             <div class="col-md-8">
                                 <label for="NamaPelanggan" class="form-label fw-semibold">Nama Pelanggan</label>
-                                <input type="text" name="NamaPelanggan" id="NamaPelanggan"
+                                <input type="text"id="NamaPelanggan"
                                     class="form-control @error('NamaPelanggan') is-invalid @enderror"
                                     placeholder="Nama Pelanggan"
-                                    value="{{ old('NamaPelanggan', $penawaran->NamaPelanggan) }}">
+                                    value="{{ old('NamaPelanggan', $penawaran->getCustomer->name) }}" readonly>
+                                    <input type="text" value="{{ $penawaran->getCustomer->id }}" name="NamaPelanggan" hidden>
                                 @error('NamaPelanggan')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror

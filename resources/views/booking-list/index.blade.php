@@ -51,7 +51,7 @@
                                             <td>{{ $p->Nomor }}</td>
                                             <td>{{ $p->Tanggal ? \Carbon\Carbon::parse($p->Tanggal)->translatedFormat('d F Y') : ($p->Tanngal ? \Carbon\Carbon::parse($p->Tanngal)->translatedFormat('d F Y') : '-') }}
                                             </td>
-                                            <td>{{ $p->NamaPelanggan }}</td>
+                                            <td>{{ $p->getCustomer->name }}</td>
                                             <td>Rp {{ number_format($p->Total, 0, ',', '.') }}</td>
                                             <td>
                                                 <a href="{{route('booking-list.create', encrypt($p->id))}}"

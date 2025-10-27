@@ -14,6 +14,7 @@ use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 use DB;
 use Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
@@ -28,6 +29,7 @@ class UserController extends Controller
         return view('users.index', compact('data'))
             ->with('i', ($request->input('page', 1) - 1) * 5);
     }
+
 
     /**
      * Show the form for creating a new resource.

@@ -23,4 +23,22 @@ class BookingList extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getCustomer()
+    {
+        return $this->hasOne(User::class, 'id', 'NamaPelanggan');
+    }
+    public function getKaryawan()
+    {
+        return $this->hasOne(User::class, 'id', 'Penerima');
+    }
+    public function getProduk()
+    {
+        return $this->hasOne(Produk::class, 'id', 'IdProduk');
+    }
+    public function getPenawaran()
+    {
+        return $this->hasOne(PenawaranHarga::class, 'id', 'IdPenawaran');
+    }
+
 }

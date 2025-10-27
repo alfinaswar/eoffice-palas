@@ -4,40 +4,46 @@
     <div class="page-header">
         <div class="row">
             <div class="col">
-                <h3 class="page-title">Penawaran Harga</h3>
+                <h3 class="page-title">Master Customer</h3>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Penawaran Harga</li>
+                    <li class="breadcrumb-item active">Master Customer</li>
                 </ul>
             </div>
         </div>
     </div>
 
+    {{-- Uncomment below if you want to add new Customer button --}}
+
     <div class="row mb-3">
         <div class="col text-end">
-            <a class="btn btn-primary" href="{{ route('penawaran-harga.create') }}">Tambah Penawaran Harga</a>
+            <a class="btn btn-primary" href="{{ route('customer.create') }}">Tambah Customer Baru</a>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-header bg-dark">
-                    <h4 class="card-title">List Penawaran Harga</h4>
+                    <h4 class="card-title">List Customer</h4>
                     <p class="card-text">
-                        Tabel ini berisi semua data penawaran harga yang ada.
+                        Tabel ini berisi semua data customer yang ada.
                     </p>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table datanew cell-border compact stripe" id="penawaranHargaTable" width="100%">
+                        <table class="table datanew cell-border compact stripe" id="customerTable" width="100%">
                             <thead>
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th>Nomor</th>
-                                    <th>Tanggal</th>
-                                    <th>Customer</th>
-                                    <th>Total Penawaran</th>
+                                    <th>NIK</th>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>No HP</th>
+                                    <th>Alamat</th>
+                                    <th>Tanggal Lahir</th>
+                                    <th>Jenis Kelamin</th>
                                     <th width="15%">Aksi</th>
                                 </tr>
                             </thead>
@@ -69,7 +75,7 @@
                 var id = $(this).data('id');
                 Swal.fire({
                     title: 'Hapus Data?',
-                    text: "Apakah Anda yakin ingin menghapus penawaran harga ini?",
+                    text: "Apakah Anda yakin ingin menghapus customer ini?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Hapus!',
@@ -77,7 +83,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ route('penawaran-harga.destroy', ':id') }}'.replace(':id', id),
+                            url: '{{ route('users.destroy', ':id') }}'.replace(':id', id),
                             type: 'DELETE',
                             data: {
                                 _token: '{{ csrf_token() }}'
@@ -85,7 +91,7 @@
                             success: function (response) {
                                 if (response.status === 200) {
                                     Swal.fire('Dihapus!', response.message, 'success');
-                                    $('#penawaranHargaTable').DataTable().ajax.reload();
+                                    $('#customerTable').DataTable().ajax.reload();
                                 } else {
                                     Swal.fire('Gagal!', response.message, 'error');
                                 }
@@ -99,13 +105,13 @@
             });
 
             function loadDataTable() {
-                $('#penawaranHargaTable').DataTable({
+                $('#customerTable').DataTable({
                     responsive: true,
                     serverSide: true,
                     processing: true,
                     bDestroy: true,
                     ajax: {
-                        url: "{{ route('penawaran-harga.index') }}",
+                        url: "{{ route('customer.index') }}",
                     },
                     language: {
                         processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Memuat...</span>',
@@ -122,20 +128,32 @@
                             searchable: false
                         },
                         {
-                            data: 'Nomor',
-                            name: 'Nomor'
+                            data: 'nik',
+                            name: 'nik'
                         },
                         {
-                            data: 'Tanggal',
-                            name: 'Tanggal'
+                            data: 'name',
+                            name: 'name'
                         },
                         {
-                            data: 'NamaPelanggan',
-                            name: 'NamaPelanggan'
+                            data: 'email',
+                            name: 'email'
                         },
                         {
-                            data: 'Total',
-                            name: 'Total'
+                            data: 'nohp',
+                            name: 'nohp'
+                        },
+                        {
+                            data: 'alamat',
+                            name: 'alamat'
+                        },
+                        {
+                            data: 'tanggal_lahir',
+                            name: 'tanggal_lahir'
+                        },
+                        {
+                            data: 'jenis_kelamin',
+                            name: 'jenis_kelamin'
                         },
                         {
                             data: 'action',
