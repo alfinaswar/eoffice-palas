@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->date('TanggalTransaksi')->nullable();
             $table->string('IdPelanggan')->nullable();
             $table->string('IdPetugas')->nullable();
-            $table->enum('JenisTransaksi', ['Cash', 'Cicilan'])->nullable();
+            $table->enum('JenisTransaksi', ['Cash', 'Cicilan', 'Kredit'])->nullable();
             $table->string('TotalHarga')->default('0')->nullable();
             $table->string('UangMuka')->default('0')->nullable();
             $table->string('SisaBayar')->default('0')->nullable();

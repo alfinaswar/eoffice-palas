@@ -42,7 +42,7 @@
                                 <select name="IdPelanggan" id="IdPelanggan"
                                     class="form-control @error('IdPelanggan') is-invalid @enderror">
                                     <option value="">Pilih Pelanggan</option>
-                                    @if(isset($booking) && $booking->getCustomer)
+                                    @if (isset($booking) && $booking->getCustomer)
                                         <option value="{{ $booking->getCustomer->id }}" selected>
                                             {{ $booking->getCustomer->name }}
                                         </option>
@@ -68,7 +68,7 @@
                                 <select name="JenisTransaksi" id="JenisTransaksi"
                                     class="form-control @error('JenisTransaksi') is-invalid @enderror">
                                     <option value="">Pilih Jenis Transaksi</option>
-                                    <option value="Tunai" {{ old('JenisTransaksi') == 'Tunai' ? 'selected' : '' }}>Tunai
+                                    <option value="Tunai" {{ old('JenisTransaksi') == 'Cash' ? 'selected' : '' }}>Tunai
                                     </option>
                                     <option value="Kredit" {{ old('JenisTransaksi') == 'Kredit' ? 'selected' : '' }}>Kredit
                                     </option>
@@ -77,16 +77,63 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <div class="col-md-4" id="durasiKreditContainer" style="display: none;">
+                                <label for="DurasiAngsuran" class="form-label"><strong>Durasi Pembayaran</strong></label>
+                                <select name="DurasiAngsuran" id="DurasiAngsuran"
+                                    class="form-control @error('DurasiAngsuran') is-invalid @enderror">
+                                    <option value="">Pilih Durasi Pembayaran</option>
+                                    @if (isset($angsuran) && count($angsuran) > 0)
+                                        @foreach ($angsuran as $item)
+                                            <option value="{{ $item->JumlahPembayaran }}"
+                                                {{ old('DurasiAngsuran') == $item->id ? 'selected' : '' }}>
+                                                {{ $item->JumlahPembayaran }} Bulan - {{ $item->KonversiTahun }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                @error('DurasiAngsuran')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    function toggleDurasi() {
+                                        const jenis = document.getElementById('JenisTransaksi').value;
+                                        const durasiDiv = document.getElementById('durasiKreditContainer');
+                                        if (jenis === 'Kredit') {
+                                            durasiDiv.style.display = 'block';
+                                        } else {
+                                            durasiDiv.style.display = 'none';
+                                            // Optionally reset value when hidden
+                                            document.getElementById('DurasiAngsuran').value = '';
+                                        }
+                                    }
+                                    document.getElementById('JenisTransaksi').addEventListener('change', toggleDurasi);
+                                    // On load, set correct state
+                                    toggleDurasi();
+                                });
+                            </script>
                             <div class="col-md-4">
-                                <label for="TotalHarga" class="form-label"><strong>Total Harga</strong></label>
+                                <label for="TotalHarga" class="form-label"><strong>Harga</strong></label>
                                 <input type="number" step="1" name="TotalHarga"
                                     class="form-control @error('TotalHarga') is-invalid @enderror" id="TotalHarga"
-                                    placeholder="Total Harga" value="{{ old('TotalHarga', $booking->Total ?? '') }}">
+                                    placeholder="Total Harga"
+                                    value="{{ old('TotalHarga', $booking->getPenawaran->Total ?? '') }}">
                                 @error('TotalHarga')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="col-md-4">
+                                <label for="BiayaBooking" class="form-label"><strong>Biaya Booking</strong></label>
+                                <input type="number" step="1" name="BiayaBooking"
+                                    class="form-control @error('BiayaBooking') is-invalid @enderror" id="BiayaBooking"
+                                    placeholder="Total Harga" value="{{ old('BiayaBooking', $booking->Total ?? '') }}">
+                                @error('BiayaBooking')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            {{-- <div class="col-md-4">
                                 <label for="UangMuka" class="form-label"><strong>Uang Muka</strong></label>
                                 <input type="number" step="1" name="UangMuka"
                                     class="form-control @error('UangMuka') is-invalid @enderror" id="UangMuka"
@@ -94,7 +141,7 @@
                                 @error('UangMuka')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
-                            </div>
+                            </div> --}}
                             <div class="col-md-4">
                                 <label for="SisaBayar" class="form-label"><strong>Sisa Bayar</strong></label>
                                 <input type="number" step="1" name="SisaBayar"
@@ -107,8 +154,8 @@
 
                             <div class="col-md-12">
                                 <label for="Keterangan" class="form-label"><strong>Keterangan</strong></label>
-                                <textarea name="Keterangan" class="form-control @error('Keterangan') is-invalid @enderror"
-                                    id="Keterangan" placeholder="Keterangan" rows="3">{{ old('Keterangan') }}</textarea>
+                                <textarea name="Keterangan" class="form-control @error('Keterangan') is-invalid @enderror" id="Keterangan"
+                                    placeholder="Keterangan" rows="3">{{ old('Keterangan') }}</textarea>
                                 @error('Keterangan')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror

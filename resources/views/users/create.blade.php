@@ -127,11 +127,15 @@
                                 <select name="agama" id="agama" class="form-select">
                                     <option value="">Pilih Agama</option>
                                     <option value="Islam" {{ old('agama') == 'Islam' ? 'selected' : '' }}>Islam</option>
-                                    <option value="Kristen" {{ old('agama') == 'Kristen' ? 'selected' : '' }}>Kristen</option>
-                                    <option value="Katolik" {{ old('agama') == 'Katolik' ? 'selected' : '' }}>Katolik</option>
+                                    <option value="Kristen" {{ old('agama') == 'Kristen' ? 'selected' : '' }}>Kristen
+                                    </option>
+                                    <option value="Katolik" {{ old('agama') == 'Katolik' ? 'selected' : '' }}>Katolik
+                                    </option>
                                     <option value="Hindu" {{ old('agama') == 'Hindu' ? 'selected' : '' }}>Hindu</option>
-                                    <option value="Buddha" {{ old('agama') == 'Buddha' ? 'selected' : '' }}>Buddha</option>
-                                    <option value="Konghucu" {{ old('agama') == 'Konghucu' ? 'selected' : '' }}>Konghucu</option>
+                                    <option value="Buddha" {{ old('agama') == 'Buddha' ? 'selected' : '' }}>Buddha
+                                    </option>
+                                    <option value="Konghucu" {{ old('agama') == 'Konghucu' ? 'selected' : '' }}>Konghucu
+                                    </option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -140,7 +144,8 @@
                                     <option value="">Pilih Golongan Darah</option>
                                     <option value="A" {{ old('golongan_darah') == 'A' ? 'selected' : '' }}>A</option>
                                     <option value="B" {{ old('golongan_darah') == 'B' ? 'selected' : '' }}>B</option>
-                                    <option value="AB" {{ old('golongan_darah') == 'AB' ? 'selected' : '' }}>AB</option>
+                                    <option value="AB" {{ old('golongan_darah') == 'AB' ? 'selected' : '' }}>AB
+                                    </option>
                                     <option value="O" {{ old('golongan_darah') == 'O' ? 'selected' : '' }}>O</option>
                                 </select>
                             </div>
@@ -166,7 +171,8 @@
                                 <select name="nama_bank" id="nama_bank" class="form-select select2">
                                     <option value="">Pilih Nama Bank</option>
                                     @foreach ($bank as $item)
-                                        <option value="{{ $item->id }}" {{ old('nama_bank') == $item->id ? 'selected' : '' }}>
+                                        <option value="{{ $item->id }}"
+                                            {{ old('nama_bank') == $item->id ? 'selected' : '' }}>
                                             {{ $item->Nama }}</option>
                                     @endforeach
                                 </select>
@@ -187,14 +193,15 @@
                             {{-- Data Akun --}}
                             <div class="col-md-6">
                                 <label for="email" class="form-label"><strong>Email</strong></label>
-                                <input type="email" name="email" class="form-control" id="email" placeholder="Email"
-                                    value="{{ old('email') }}">
+                                <input type="email" name="email" class="form-control" id="email"
+                                    placeholder="Email" value="{{ old('email') }}">
                             </div>
                             <div class="col-md-6">
                                 <label for="password" class="form-label"><strong>Password</strong></label>
                                 <input type="password" name="password" class="form-control" id="password"
                                     placeholder="Masukkan Password">
-                                <small class="text-muted">Wajib diisi untuk pembuatan akun. Simpan baik-baik email dan password ini untuk login ke sistem.</small>
+                                <small class="text-muted">Wajib diisi untuk pembuatan akun. Simpan baik-baik email dan
+                                    password ini untuk login ke sistem.</small>
                             </div>
 
                             <div class="col-12 text-end mt-3">

@@ -37,7 +37,10 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
-
+Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');
+Route::get('cities', [DependentDropdownController::class, 'cities'])->name('cities');
+Route::get('districts', [DependentDropdownController::class, 'districts'])->name('districts');
+Route::get('villages', [DependentDropdownController::class, 'villages'])->name('villages');
 Route::group(['middleware' => ['auth']], function () {
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
@@ -148,9 +151,4 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/daftar-tagihan/{id}', [TransaksiController::class, 'Tagihan'])->name('transaksi.list-tagihan');
         Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     });
-
 });
-Route::get('provinces', [DependentDropdownController::class, 'provinces'])->name('provinces');
-Route::get('cities', [DependentDropdownController::class, 'cities'])->name('cities');
-Route::get('districts', [DependentDropdownController::class, 'districts'])->name('districts');
-Route::get('villages', [DependentDropdownController::class, 'villages'])->name('villages');

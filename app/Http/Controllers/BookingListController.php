@@ -18,7 +18,7 @@ class BookingListController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = BookingList::with('getKaryawan')->latest();
+            $data = BookingList::with('getKaryawan', 'getProduk', 'getCustomer')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -34,6 +34,12 @@ class BookingListController extends Controller
                 })
                 ->editColumn('Penerima', function ($row) {
                     return $row->getKaryawan->name;
+                })
+                ->editColumn('IdProduk', function ($row) {
+                    return $row->getProduk->Nama;
+                })
+                ->editColumn('NamaPelanggan', function ($row) {
+                    return $row->getCustomer->name;
                 })
                 ->rawColumns(['action'])
                 ->make(true);

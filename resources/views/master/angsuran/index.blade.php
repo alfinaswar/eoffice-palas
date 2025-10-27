@@ -63,8 +63,8 @@
         </script>
     @endif
     <script>
-        $(document).ready(function () {
-            $('body').on('click', '.btn-delete', function () {
+        $(document).ready(function() {
+            $('body').on('click', '.btn-delete', function() {
                 var id = $(this).data('id');
                 Swal.fire({
                     title: 'Hapus Data?',
@@ -76,12 +76,13 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: '{{ route('master-angsuran.destroy', ':id') }}'.replace(':id', id),
+                            url: '{{ route('master-angsuran.destroy', ':id') }}'.replace(
+                                ':id', id),
                             type: 'DELETE',
                             data: {
                                 _token: '{{ csrf_token() }}'
                             },
-                            success: function (response) {
+                            success: function(response) {
                                 if (response.status === 200) {
                                     Swal.fire('Dihapus!', response.message, 'success');
                                     $('#angsuranTable').DataTable().ajax.reload();
@@ -89,8 +90,9 @@
                                     Swal.fire('Gagal!', response.message, 'error');
                                 }
                             },
-                            error: function (xhr) {
-                                Swal.fire('Gagal!', xhr.responseJSON?.message ?? 'Terjadi kesalahan saat menghapus.', 'error');
+                            error: function(xhr) {
+                                Swal.fire('Gagal!', xhr.responseJSON?.message ??
+                                    'Terjadi kesalahan saat menghapus.', 'error');
                             }
                         });
                     }
@@ -113,29 +115,25 @@
                             previous: '<i class="fa fa-angle-double-left" aria-hidden="true"></i>'
                         }
                     },
-                    columns: [
-                        {
+                    columns: [{
                             data: 'DT_RowIndex',
                             name: 'DT_RowIndex',
                             orderable: false,
                             searchable: false
                         },
                         {
-                            data: 'Nama',
-                            name: 'Nama'
+                            data: 'KonversiTahun',
+                            name: 'KonversiTahun'
                         },
                         {
-                            data: 'Lama',
-                            name: 'Lama'
+                            data: 'JumlahPembayaran',
+                            name: 'JumlahPembayaran'
                         },
                         {
                             data: 'Bunga',
                             name: 'Bunga'
                         },
-                        {
-                            data: 'Status',
-                            name: 'Status'
-                        },
+
                         {
                             data: 'action',
                             name: 'action',

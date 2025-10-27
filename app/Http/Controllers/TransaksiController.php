@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingList;
+use App\Models\MasterAngsuran;
 use App\Models\Transaksi;
+use App\Models\TransaksiDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -41,8 +43,9 @@ class TransaksiController extends Controller
     public function create($id)
     {
         $id = decrypt($id);
-        $booking = BookingList::find($id);
-        return view('transaksi.create', compact('booking'));
+        $booking = BookingList::with('getPenawaran')->find($id);
+        $angsuran = MasterAngsuran::get();
+        return view('transaksi.create', compact('booking', 'angsuran'));
     }
 
     /**
@@ -50,8 +53,71 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $generateKode = $this->generateKodeTransaksi();
+        $transaksi = Transaksi::create([
+            'KodeTransaksi' => $generateKode,
+            'IdProduk' => $request->IdProduk,
+            'TanggalTransaksi' => $request->TanggalTransaksi,
+            'IdPelanggan' => $request->IdPelanggan,
+            'IdPetugas' => $request->IdPetugas,
+            'JenisTransaksi' => $request->JenisTransaksi,
+            'DurasiPembayaran' => $request->DurasiAngsuran,
+            'TotalHarga' => $request->TotalHarga,
+            'UangMuka' => $request->UangMuka ?? null,
+            'SisaBayar' => $request->SisaBayar ?? null,
+            'Keterangan' => $request->Keterangan ?? null,
+        ]);
+
+        $durasi = $request->DurasiAngsuran;
+        $besarCicilan = $request->TotalHarga / $request->DurasiAngsuran;
+
+        for ($i = 1; $i <= $durasi; $i++) {
+            TransaksiDetail::create([
+                'IdTransaksi' => $transaksi->id,
+                'IdPelanggan' => $request->IdPelanggan,
+                'CicilanKe' => $i,
+                'BesarCicilan' => $besarCicilan,
+                'TotalPembayaran' => $besarCicilan,
+                'Status' => 'Tidak',
+                'UserCreated' => auth()->user()->name,
+            ]);
+        }
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Transaksi berhasil dibuat: ' . ($transaksi->KodeTransaksi ?? ''));
+        return redirect()
+            ->route('transaksi.index')
+            ->with('success', 'Transaksi berhasil disimpan.');
     }
+
+    /**
+     * Generate a unique transaction code.
+     *
+     * Format: TRX-YYYYMMDD-XXXX (incremental number per day)
+     */
+    private function generateKodeTransaksi()
+    {
+        $year = date('y');
+        $month = date('n');
+        $day = date('d');
+
+        $prefix = 'TRX' . $year . $month . $day;
+
+        $lastTransaksi = Transaksi::where('KodeTransaksi', 'like', $prefix . '%')
+            ->orderBy('KodeTransaksi', 'desc')
+            ->first();
+
+        if ($lastTransaksi && preg_match('/(\d{4})$/', $lastTransaksi->KodeTransaksi, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $kodeBaru = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        return $kodeBaru;
+    }
+
     public function Tagihan($id)
     {
         dd($id);

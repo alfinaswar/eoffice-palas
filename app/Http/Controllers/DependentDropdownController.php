@@ -11,19 +11,18 @@ class DependentDropdownController extends Controller
         return \Indonesia::allProvinces();
     }
 
-    // Ubah parameter $request menjadi opsional, dan ambil id dari parameter langsung
-    public function cities($id)
+    public function cities(Request $request)
     {
-        return \Indonesia::findProvince($id, ['cities'])->cities->pluck('name', 'id');
+        return \Indonesia::findProvince($request->id, ['cities'])->cities->pluck('name', 'id');
     }
 
-    public function districts($id)
+    public function districts(Request $request)
     {
-        return \Indonesia::findCity($id, ['districts'])->districts->pluck('name', 'id');
+        return \Indonesia::findCity($request->id, ['districts'])->districts->pluck('name', 'id');
     }
 
-    public function villages($id)
+    public function villages(Request $request)
     {
-        return \Indonesia::findDistrict($id, ['villages'])->villages->pluck('name', 'id');
+        return \Indonesia::findDistrict($request->id, ['villages'])->villages->pluck('name', 'id');
     }
 }

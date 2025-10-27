@@ -18,7 +18,7 @@ class MasterCustomer extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::orderByDesc('name');
+            $data = User::where('jenis_user', 'Customer')->orderByDesc('name');
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -40,7 +40,7 @@ class MasterCustomer extends Controller
     public function create()
     {
         $roles = Role::pluck('name', 'name')->all();
-        return view('master.customer.create', compact('roles'));
+        return View('master.customer.create', compact('roles'));
     }
 
     /**
@@ -69,8 +69,6 @@ class MasterCustomer extends Controller
             'no_bpjs' => 'nullable|string|max:30',
             'no_rekening' => 'nullable|string|max:50',
             'nama_bank' => 'nullable|exists:master_banks,id',
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,name',
         ]);
 
         if ($validator->fails()) {
@@ -88,6 +86,7 @@ class MasterCustomer extends Controller
         }
         $input['password'] = Hash::make($request->input('password'));
         $input['jenis_user'] = 'Customer';
+        $input['roles'] = 'Customer';
         $input['KodeKantor'] = $request->KodeKantor ?? auth()->user()->KodeKantor;
         $user = User::create($input);
         $user->assignRole($request->input('roles'));

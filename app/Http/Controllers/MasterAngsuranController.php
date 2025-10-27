@@ -24,6 +24,9 @@ class MasterAngsuranController extends Controller
                         <button class="btn btn-sm btn-danger btn-delete" data-id="' . $encryptedId . '">Hapus</button>
                     ';
                 })
+                ->editColumn('JumlahPembayaran', function ($row) {
+                    return $row->JumlahPembayaran . ' Kali / Bulan';
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -45,6 +48,7 @@ class MasterAngsuranController extends Controller
         MasterAngsuran::create([
             'JumlahPembayaran' => $request->JumlahPembayaran,
             'KonversiTahun' => $request->KonversiTahun,
+            'Bunga' => $request->Bunga,
             'UserCreated' => auth()->user()->name,
         ]);
 
@@ -74,6 +78,7 @@ class MasterAngsuranController extends Controller
         $angsuran->update([
             'JumlahPembayaran' => $request->JumlahPembayaran,
             'KonversiTahun' => $request->KonversiTahun,
+            'Bunga' => $request->Bunga,
             'UserUpdated' => auth()->user()->name
         ]);
 
