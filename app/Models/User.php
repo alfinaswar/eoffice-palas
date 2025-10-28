@@ -23,6 +23,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $guarded = ['id'];
+
     // Relasi menggunakan library Laravolt untuk Provinsi, Kota, Kecamatan, dan Kelurahan
 
     public function getProvinsi()
@@ -43,6 +44,11 @@ class User extends Authenticatable
     public function getKelurahan()
     {
         return $this->belongsTo(Village::class, 'kelurahan', 'id');
+    }
+
+    public function getTransaksi()
+    {
+        return $this->hasMany(Transaksi::class, 'IdPelanggan', 'id');
     }
 
     /**

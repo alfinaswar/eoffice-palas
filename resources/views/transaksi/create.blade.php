@@ -116,23 +116,33 @@
                             </script>
                             <div class="col-md-4">
                                 <label for="TotalHarga" class="form-label"><strong>Harga</strong></label>
-                                <input type="number" step="1" name="TotalHarga"
-                                    class="form-control @error('TotalHarga') is-invalid @enderror" id="TotalHarga"
-                                    placeholder="Total Harga"
-                                    value="{{ old('TotalHarga', $booking->getPenawaran->Total ?? '') }}">
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" name="TotalHarga"
+                                        class="form-control @error('TotalHarga') is-invalid @enderror" id="TotalHarga"
+                                        placeholder="Total Harga"
+                                        value="{{ old('TotalHarga', isset($booking->getPenawaran->Total) ? number_format($booking->getPenawaran->Total, 0, ',', '.') : '') }}"
+                                        autocomplete="off" readonly>
+                                </div>
                                 @error('TotalHarga')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+
                             <div class="col-md-4">
                                 <label for="BiayaBooking" class="form-label"><strong>Biaya Booking</strong></label>
-                                <input type="number" step="1" name="BiayaBooking"
-                                    class="form-control @error('BiayaBooking') is-invalid @enderror" id="BiayaBooking"
-                                    placeholder="Total Harga" value="{{ old('BiayaBooking', $booking->Total ?? '') }}">
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" name="BiayaBooking" readonly
+                                        class="form-control @error('BiayaBooking') is-invalid @enderror" id="BiayaBooking"
+                                        placeholder="Total Harga" value="{{ old('BiayaBooking', $booking->Total ?? '') }}"
+                                        autocomplete="off">
+                                </div>
                                 @error('BiayaBooking')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+
                             {{-- <div class="col-md-4">
                                 <label for="UangMuka" class="form-label"><strong>Uang Muka</strong></label>
                                 <input type="number" step="1" name="UangMuka"
@@ -142,7 +152,7 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div> --}}
-                            <div class="col-md-4">
+                            {{-- <div class="col-md-4">
                                 <label for="SisaBayar" class="form-label"><strong>Sisa Bayar</strong></label>
                                 <input type="number" step="1" name="SisaBayar"
                                     class="form-control @error('SisaBayar') is-invalid @enderror" id="SisaBayar"
@@ -150,7 +160,7 @@
                                 @error('SisaBayar')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
-                            </div>
+                            </div> --}}
 
                             <div class="col-md-12">
                                 <label for="Keterangan" class="form-label"><strong>Keterangan</strong></label>
@@ -177,3 +187,59 @@
         </div>
     </div>
 @endsection
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hargaInput = document.getElementById('TotalHarga');
+            hargaInput.addEventListener('input', function(e) {
+                let value = this.value.replace(/\D/g, "");
+                if (value) {
+                    this.value = parseInt(value).toLocaleString('id-ID');
+                } else {
+                    this.value = "";
+                }
+            });
+
+            // Optionally, on form submit remove formatting if needed
+            hargaInput.form && hargaInput.form.addEventListener('submit', function() {
+                hargaInput.value = hargaInput.value.replace(/\./g, "");
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingInput = document.getElementById('BiayaBooking');
+
+            function formatRupiah(angka, prefix) {
+                let number_string = angka.replace(/[^,\d]/g, '').toString(),
+                    split = number_string.split(','),
+                    sisa = split[0].length % 3,
+                    rupiah = split[0].substr(0, sisa),
+                    ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+
+                rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+                return prefix === undefined ? rupiah : (rupiah ? prefix + rupiah : '');
+            }
+
+            // Set initial value if any
+            if (bookingInput.value) {
+                bookingInput.value = formatRupiah(bookingInput.value, '');
+            }
+
+            bookingInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+                e.target.value = formatRupiah(value, '');
+            });
+
+            // Optionally: on form submit, remove thousand separator before send
+            bookingInput.form && bookingInput.form.addEventListener('submit', function() {
+                bookingInput.value = bookingInput.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+            });
+        });
+    </script>
+@endpush

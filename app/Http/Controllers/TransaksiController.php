@@ -126,9 +126,11 @@ class TransaksiController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Transaksi $transaksi)
+    public function show($id)
     {
-        //
+        $id = decrypt($id);
+        $data = user::with('getTransaksi')->find($id);
+        return view('transaksi.show', compact('data'));
     }
 
     /**
