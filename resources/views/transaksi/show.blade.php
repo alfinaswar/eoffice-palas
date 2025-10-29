@@ -23,25 +23,28 @@
                         <table class="table table-borderless mb-0">
                             <tbody>
                                 <tr>
+                                    <th scope="row" class="py-1 px-0">Nomor Identitas</th>
+                                    <td class="py-1 px-0">{{ $data->nik }}</td>
+                                </tr>
+                                <tr>
                                     <th scope="row" class="py-1 px-0">Nama</th>
-                                    <td class="py-1 px-0">John Doe</td>
+                                    <td class="py-1 px-0">{{ $data->name }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Email</th>
-                                    <td class="py-1 px-0">johndoe@email.com</td>
+                                    <td class="py-1 px-0">
+                                        <a href="mailto:{{ $data->email }}">{{ $data->email }}</a>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">No. Telepon</th>
-                                    <td class="py-1 px-0">0812-3456-7890</td>
+                                    <td class="py-1 px-0">{{ $data->nohp }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Alamat</th>
-                                    <td class="py-1 px-0">Jl. Mawar No. 123, Jakarta</td>
+                                    <td class="py-1 px-0">{{ $data->alamat }}</td>
                                 </tr>
-                                <tr>
-                                    <th scope="row" class="py-1 px-0">Tanggal Bergabung</th>
-                                    <td class="py-1 px-0">12 Jan 2023</td>
-                                </tr>
+
                             </tbody>
                         </table>
                     </div>
@@ -103,7 +106,7 @@
     <div class="page-header">
         <div class="add-item d-flex">
             <div class="page-title">
-                <h4>Attendance</h4>
+                <h4>Daftar Tagihan</h4>
             </div>
         </div>
         <ul class="table-top-head">
@@ -128,8 +131,8 @@
 
                 <div class="input-blocks search-set mb-0">
                     <!-- <div class="total-employees">
-                                                              <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                             </div> -->
+                                                                                                                                                                                  <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
+                                                                                                                                                                                 </div> -->
                     <div class="search-input">
                         <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
                     </div>
@@ -228,15 +231,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- <div class="search-path d-flex align-items-center search-path-new">
-                                                             <a class="btn btn-filter" id="filter_search">
-                                                              <i data-feather="filter" class="filter-icon"></i>
-                                                              <span><img src="assets/img/icons/closes.svg" alt="img"></span>
-                                                             </a>
-                                                             <a href="employees-list.html" class="btn-list active"><i data-feather="list" class="feather-user"></i></a>
-                                                             <a href="employees-grid.html" class="btn-grid"><i data-feather="grid" class="feather-user"></i></a>
 
-                                                            </div> -->
                 <div class="form-sort">
                     <i data-feather="sliders" class="info-img"></i>
                     <select class="select">
@@ -281,7 +276,7 @@
             </div>
             <!-- /Filter -->
             <div class="table-responsive">
-                <table class="table  datanew">
+                <table class="table  datanew" id="transaksi-table">
                     <thead>
                         <tr>
                             <th class="no-sort">
@@ -290,44 +285,18 @@
                                     <span class="checkmarks"></span>
                                 </label>
                             </th>
-                            <th>Date</th>
-                            <th>Clock In</th>
-                            <th>Clock Out</th>
-                            <th>Production</th>
-                            <th>Break</th>
-                            <th>Overtime</th>
-                            <th>Progress</th>
-                            <th>Status</th>
-                            <th>Total Hours</th>
+                            <th>KodeTransaksi</th>
+                            <th>TanggalTransaksi</th>
+                            <th>IdPelanggan</th>
+                            <th>JenisTransaksi</th>
+                            <th>TotalHarga</th>
+                            <th>TipePembayaran</th>
+                            <th>DurasiPembayaran</th>
+                            <th>SisaBayar</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <label class="checkboxs">
-                                    <input type="checkbox">
-                                    <span class="checkmarks"></span>
-                                </label>
-                            </td>
-                            <td>01 Jan 2023</td>
-                            <td>09:15 AM</td>
-                            <td>08:55 PM</td>
-                            <td>9h 00m</td>
-                            <td>1h 13m</td>
-                            <td>00h 50m</td>
-                            <td>
-                                <div class="progress attendance">
-                                    <div class="progress-bar progress-bar-success" role="progressbar" style="width:78%">
-                                    </div>
-                                    <div class="progress-bar progress-bar-warning" role="progressbar" style="width:55%">
-                                    </div>
-                                    <div class="progress-bar progress-bar-danger" role="progressbar" style="width:15%">
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge-linesuccess">Present</span></td>
-                            <td>09h 50m</td>
-                        </tr>
+
 
                     </tbody>
                 </table>
@@ -337,3 +306,67 @@
 
     <!-- /Main Wrapper -->
 @endsection
+@push('js')
+    <script>
+        function loadDataTable() {
+            $('#transaksi-table').DataTable({
+                responsive: true,
+                serverSide: true,
+                processing: true,
+                bDestroy: true,
+                ajax: {
+                    url: "{{ route('transaksi.list-tagihan') }}",
+                },
+                language: {
+                    processing: '<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only">Memuat...</span>',
+                    paginate: {
+                        next: '<i class="fa fa-angle-double-right" aria-hidden="true"></i>',
+                        previous: '<i class="fa fa-angle-double-left" aria-hidden="true"></i>'
+                    }
+                },
+                columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'KodeTransaksi',
+                    name: 'KodeTransaksi'
+                },
+                {
+                    data: 'TanggalTransaksi',
+                    name: 'TanggalTransaksi'
+                },
+                {
+                    data: 'IdPelanggan',
+                    name: 'IdPelanggan'
+                },
+                {
+                    data: 'JenisTransaksi',
+                    name: 'JenisTransaksi'
+                },
+                {
+                    data: 'TotalHarga',
+                    name: 'TotalHarga'
+                },
+                {
+                    data: 'TipePembayaran',
+                    name: 'TipePembayaran'
+                },
+                {
+                    data: 'DurasiPembayaran',
+                    name: 'DurasiPembayaran'
+                },
+                {
+                    data: 'SisaBayar',
+                    name: 'SisaBayar'
+                }
+                ]
+            });
+        }
+
+        loadDataTable();
+                                                                    });
+    </script>
+@endpush
