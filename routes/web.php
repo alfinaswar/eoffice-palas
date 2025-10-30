@@ -147,7 +147,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
         Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
         Route::put('/update/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
-        Route::get('/show/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
+        Route::get('/pembayaran/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
         Route::get('/daftar-tagihan/{id}', [TransaksiController::class, 'Tagihan'])->name('transaksi.list-tagihan');
         Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
     });

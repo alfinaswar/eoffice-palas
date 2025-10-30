@@ -23,4 +23,14 @@ class Transaksi extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    /**
+     * Get all of the comments for the Transaksi
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function getTransaksi()
+    {
+        return $this->hasMany(TransaksiDetail::class, 'IdTransaksi', 'id');
+    }
 }

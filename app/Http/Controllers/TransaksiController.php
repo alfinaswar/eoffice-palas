@@ -24,7 +24,7 @@ class TransaksiController extends Controller
                 ->addColumn('action', function ($row) {
                     $encryptedId = encrypt($row->id);
                     return '
-                        <a href="' . route('transaksi.show', $encryptedId) . '" class="btn btn-sm btn-info">Cek Transaksi</a>
+                        <a href="' . route('transaksi.list-tagihan', $encryptedId) . '" class="btn btn-sm btn-info">Cek Transaksi</a>
                     ';
                 })
                 ->editColumn('created_at', function ($row) {
@@ -120,7 +120,9 @@ class TransaksiController extends Controller
 
     public function Tagihan($id)
     {
-        dd($id);
+        $id = decrypt($id);
+        $data = user::with('getTransaksi')->find($id);
+        return view('transaksi.show', compact('data'));
     }
 
     /**
@@ -129,8 +131,8 @@ class TransaksiController extends Controller
     public function show($id)
     {
         $id = decrypt($id);
-        $data = user::with('getTransaksi')->find($id);
-        return view('transaksi.show', compact('data'));
+        $data = Transaksi::with('getTransaksi')->find($id);
+        return view('transaksi.tagihan-pelanggan', compact('data'));
     }
 
     /**

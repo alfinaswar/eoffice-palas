@@ -128,8 +128,8 @@
 
                 <div class="input-blocks search-set mb-0">
                     <!-- <div class="total-employees">
-                                                                                                                                                                                                                                                  <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                                                                                                                                                                                                                 </div> -->
+                                                                                                                                                                                                                                                                                              <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
+                                                                                                                                                                                                                                                                                             </div> -->
                     <div class="search-input">
                         <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
                     </div>
@@ -176,10 +176,10 @@
                         <tr>
                             <th>#</th>
                             <th>Kode Transaksi</th>
-                            <th>Tanggal Transaksi</th>
+                            <th>Kode Bayar</th>
                             <th>Jenis Transaksi</th>
                             <th>Total Harga</th>
-                            <th>Status</th>
+                            <th>Sudah Bayar ?</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -187,11 +187,23 @@
                         @forelse ($data->getTransaksi as $key => $value)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td>{{ $value->KodeTransaksi }}</td>
-                                <td>{{ $value->TanggalTransaksi }}</td>
-                                <td>{{ $value->JenisTransaksi }}</td>
-                                <td>{{ 'Rp ' . number_format($value->TotalHarga, 0, ',', '.') }}</td>
-                                <td>{{ $value->StatusPembayaran }}</td>
+                                <td>{{ $data->KodeTransaksi }}</td>
+                                <td>{{ $value->KodeBayar }}</td>
+                                <td>Bulan Ke-{{ $value->CicilanKe }}</td>
+                                <td>{{ 'Rp ' . number_format($value->BesarCicilan, 0, ',', '.') }}</td>
+                                <td>
+                                    @if ($value->Status == 'Tidak')
+                                        <span class="badge bg-warning text-dark">
+                                            <i data-feather="x-circle" class="me-1"></i> Belum Bayar
+                                        </span>
+                                    @elseif($value->Status == 'Lunas')
+                                        <span class="badge bg-success">
+                                            <i data-feather="check-circle" class="me-1"></i> Lunas
+                                        </span>
+                                    @else
+                                        {{ $value->Status }}
+                                    @endif
+                                </td>
                                 <td>
                                     @if ($value->StatusPembayaran !== 'Lunas')
                                         <a href="{{ route('transaksi.show', encrypt($value->id)) }}"
