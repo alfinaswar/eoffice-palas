@@ -127,13 +127,9 @@
             <div class="table-top">
 
                 <div class="input-blocks search-set mb-0">
-                    <!-- <div class="total-employees">
-                                                                                                                                                                                                                                                                                              <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                                                                                                                                                                                                                                                             </div> -->
                     <div class="search-input">
                         <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
                     </div>
-
                 </div>
                 <div class="search-path">
                     <div class="d-flex align-items-center">
@@ -143,8 +139,6 @@
                         </a>
                     </div>
                 </div>
-
-
             </div>
             <!-- /Filter -->
             <div class="card" id="filter_inputs">
@@ -177,8 +171,8 @@
                             <th>#</th>
                             <th>Kode Transaksi</th>
                             <th>Kode Bayar</th>
-                            <th>Jenis Transaksi</th>
-                            <th>Total Harga</th>
+                            <th>Pembayaran Ke</th>
+                            <th>Besar Cicilan</th>
                             <th>Sudah Bayar ?</th>
                             <th>Aksi</th>
                         </tr>
@@ -206,10 +200,12 @@
                                 </td>
                                 <td>
                                     @if ($value->StatusPembayaran !== 'Lunas')
-                                        <a href="{{ route('transaksi.show', encrypt($value->id)) }}"
-                                            class="btn btn-success btn-sm">
+                                        <button class="btn btn-success btn-sm btn-bayar"
+                                            data-id="{{ encrypt($value->id) }}" data-cicilanke="{{ $value->CicilanKe }}"
+                                            data-besarcicilan="{{ 'Rp ' . number_format($value->BesarCicilan, 0, ',', '.') }}"
+                                            data-bs-toggle="modal" data-bs-target="#modalBayar">
                                             <i data-feather="credit-card" class="me-1"></i> Bayar
-                                        </a>
+                                        </button>
                                     @else
                                         <span class="badge bg-success">
                                             <i data-feather="check-circle" class="me-1"></i> Lunas
@@ -219,13 +215,41 @@
                             </tr>
                         @empty
                         @endforelse
-
-
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- /Main Wrapper -->
+    <!-- MODAL BAYAR -->
+    @include('transaksi.modal.modal-bayar')
 @endsection
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalBayar = document.getElementById('modalBayar');
+            let formBayar = document.getElementById('formBayar');
+
+            document.querySelectorAll('.btn-bayar').forEach(function(btn) {
+                btn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    let id = btn.getAttribute('data-id');
+                    let cicilanKe = btn.getAttribute('data-cicilanke');
+                    let besarCicilan = btn.getAttribute('data-besarcicilan');
+                    document.getElementById('id_transaksi_detail').value = id;
+
+                    // Pastikan elemen untuk menampilkan info sudah tersedia di modal-bayar.blade.php
+                    let elCicilanKe = document.getElementById('modal-cicilan-ke');
+                    let elBesarCicilan = document.getElementById('modal-besar-cicilan');
+                    if (elCicilanKe) {
+                        elCicilanKe.textContent = `Pembayaran Ke: ${cicilanKe}`;
+                    }
+                    if (elBesarCicilan) {
+                        elBesarCicilan.textContent = `Besar Cicilan: ${besarCicilan}`;
+                    }
+                });
+            });
+        });
+    </script>
+@endpush

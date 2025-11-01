@@ -18,7 +18,7 @@ class TransaksiController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::latest();
+            $data = User::where('jenis_user', 'Customer')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -142,10 +142,41 @@ class TransaksiController extends Controller
     {
         //
     }
+    public function PembayaranTagihan(Request $request)
+    {
+        $request->validate([
+            'DibayarOleh' => 'required|string',
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
+        $id_transaksi_detail = decrypt($request->input('IdTransaksiDetail'));
+        // dd();
+        $transaksiDetail = TransaksiDetail::findOrFail($id_transaksi_detail);
+        $transaksiDetail->KodeBayar = $this->generateKodeBayar();
+        $transaksiDetail->Status = 'Lunas';
+        $transaksiDetail->DibayarPada = now();
+        $transaksiDetail->DibayarOleh = $request->input('DibayarOleh');
+        $transaksiDetail->save();
+
+        // $transaksi = $transaksiDetail;
+        // $belumLunas = $transaksi->getTransaksi()->where('Status', '!=', 'Lunas')->count();
+        // if ($belumLunas == 0) {
+        //     $transaksi->StatusPembayaran = 'Lunas';
+        //     $transaksi->save();
+        // }
+
+        return redirect()->back()->with('success', 'Pembayaran berhasil diproses.');
+    }
+    public function generateKodeBayar()
+    {
+        do {
+            $microtime = sprintf('%.0f', microtime(true) * 1000);
+            $kode = "PAY{$microtime}" . rand(100, 999);
+            $exists = TransaksiDetail::where('KodeBayar', $kode)->exists();
+        } while ($exists);
+
+        return $kode;
+    }
+
     public function update(Request $request, Transaksi $transaksi)
     {
         //

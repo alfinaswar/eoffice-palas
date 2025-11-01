@@ -128,8 +128,8 @@
 
                 <div class="input-blocks search-set mb-0">
                     <!-- <div class="total-employees">
-                                                                                                                                                                                                                                                  <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                                                                                                                                                                                                                 </div> -->
+                                                                                                                                                                                                                                                      <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
+                                                                                                                                                                                                                                                     </div> -->
                     <div class="search-input">
                         <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
                     </div>

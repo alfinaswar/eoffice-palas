@@ -144,6 +144,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');
         Route::post('/store', [TransaksiController::class, 'store'])->name('transaksi.store');
+        Route::post('/bayar-tagihan', [TransaksiController::class, 'PembayaranTagihan'])->name('transaksi.bayar');
         Route::get('/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
         Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
         Route::put('/update/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
