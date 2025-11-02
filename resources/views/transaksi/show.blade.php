@@ -24,79 +24,59 @@
                             <tbody>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Nama</th>
-                                    <td class="py-1 px-0">John Doe</td>
+                                    <td class="py-1 px-0">{{ $data->name ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Email</th>
-                                    <td class="py-1 px-0">johndoe@email.com</td>
+                                    <td class="py-1 px-0">{{ $data->email ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">No. Telepon</th>
-                                    <td class="py-1 px-0">0812-3456-7890</td>
+                                    <td class="py-1 px-0">{{ $data->nohp ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Alamat</th>
-                                    <td class="py-1 px-0">Jl. Mawar No. 123, Jakarta</td>
+                                    <td class="py-1 px-0">{{ $data->alamat ?? '-' }}</td>
                                 </tr>
-                                <tr>
-                                    <th scope="row" class="py-1 px-0">Tanggal Bergabung</th>
-                                    <td class="py-1 px-0">12 Jan 2023</td>
-                                </tr>
+
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-8 col-lg-12 col-md-8 d-flex">
+            {{-- <div class="col-xl-8 col-lg-12 col-md-8 d-flex">
                 <div class="card w-100">
                     <div class="card-body">
                         <h5>Days Overview This Month</h5>
                         <ul class="widget-attend">
                             <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>31</h4>
-                                    <h6>Total Working
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Nama Produk</h6>
+                                    <h4>{{ $data->getProduk->Nama ?? '-' }}</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="danger-card">
-                                    <h4>05</h4>
-                                    <h6>Abesent
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Total Harga</h6>
+                                    <h4>Rp {{ number_format($data->TotalHarga ?? 0, 0, ',', '.') }}</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="light-card">
-                                    <h4>28</h4>
-                                    <h6>Present
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Durasi Cicilan</h6>
+                                    <h4>{{ $data->getDurasiPembayaran->JumlahPembayaran ?? '-' }} bulan</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>02</h4>
-                                    <h6>Half
-                                        Days</h6>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>01</h4>
-                                    <h6>Late
-                                        Days</h6>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="success-card">
-                                    <h4>02</h4>
-                                    <h6>Holidays</h6>
+                                <div class="info-card">
+                                    <h6>Sisa Cicilan</h6>
+                                    <h4>Rp {{ number_format($data->SisaBayar ?? 0, 0, ',', '.') }}</h4>
                                 </div>
                             </li>
                         </ul>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
         </div>
     </div>
@@ -128,8 +108,8 @@
 
                 <div class="input-blocks search-set mb-0">
                     <!-- <div class="total-employees">
-                                                                                                                                                                                                                                                      <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                                                                                                                                                                                                                     </div> -->
+                                                                                                                                                                                                                                                                                      <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
+                                                                                                                                                                                                                                                                                     </div> -->
                     <div class="search-input">
                         <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
                     </div>
@@ -191,7 +171,17 @@
                                 <td>{{ $value->TanggalTransaksi }}</td>
                                 <td>{{ $value->JenisTransaksi }}</td>
                                 <td>{{ 'Rp ' . number_format($value->TotalHarga, 0, ',', '.') }}</td>
-                                <td>{{ $value->StatusPembayaran }}</td>
+                                <td>
+                                    @if ($value->StatusPembayaran !== 'Lunas')
+                                        <span class="badge bg-warning text-dark">
+                                            <i data-feather="x-circle" class="me-1"></i> {{ $value->StatusPembayaran }}
+                                        </span>
+                                    @else
+                                        <span class="badge bg-success">
+                                            <i data-feather="check-circle" class="me-1"></i> Lunas
+                                        </span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if ($value->StatusPembayaran !== 'Lunas')
                                         <a href="{{ route('transaksi.show', encrypt($value->id)) }}"

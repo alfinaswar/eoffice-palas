@@ -31,7 +31,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="input-besar-cicilan" class="form-label">Besar Cicilan</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i data-feather="dollar-sign"></i></span>
+                                <span class="input-group-text">Rp</span>
                                 <input type="text" class="form-control bg-light" name="BesarCicilan"
                                     id="input-besar-cicilan" readonly placeholder="-" value="">
                             </div>

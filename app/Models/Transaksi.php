@@ -33,4 +33,24 @@ class Transaksi extends Model
     {
         return $this->hasMany(TransaksiDetail::class, 'IdTransaksi', 'id');
     }
+
+    /**
+     * Get the user associated with the Transaksi
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::class, 'id', 'IdPelanggan');
+    }
+
+    public function getProduk()
+    {
+        return $this->hasOne(Produk::class, 'id', 'IdProduk');
+    }
+
+    public function getDurasiPembayaran()
+    {
+        return $this->hasOne(MasterAngsuran::class, 'id', 'DurasiPembayaran');
+    }
 }

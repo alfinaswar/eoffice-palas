@@ -53,6 +53,22 @@
                                 @enderror
                             </div>
                             <div class="col-md-4">
+                                <label for="IdProduk" class="form-label"><strong>Produk</strong></label>
+                                <select name="IdProduk" id="IdProduk"
+                                    class="form-control @error('IdProduk') is-invalid @enderror"
+                                    style="pointer-events: none; background-color: #f5f5f5;">
+                                    <option value="">Pilih Produk</option>
+                                    @if (isset($booking) && $booking->getProduk)
+                                        <option value="{{ $booking->getProduk->id }}" selected>
+                                            {{ $booking->getProduk->Nama }}
+                                        </option>
+                                    @endif
+                                </select>
+                                @error('IdProduk')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
                                 <label for="IdPetugas" class="form-label"><strong>Petugas</strong></label>
                                 <select name="IdPetugas" id="IdPetugas"
                                     class="form-control @error('IdPetugas') is-invalid @enderror">
@@ -85,7 +101,7 @@
                                     <option value="">Pilih Durasi Pembayaran</option>
                                     @if (isset($angsuran) && count($angsuran) > 0)
                                         @foreach ($angsuran as $item)
-                                            <option value="{{ $item->JumlahPembayaran }}"
+                                            <option value="{{ $item->id }}"
                                                 {{ old('DurasiAngsuran') == $item->id ? 'selected' : '' }}>
                                                 {{ $item->JumlahPembayaran }} Bulan - {{ $item->KonversiTahun }}
                                             </option>
@@ -135,8 +151,8 @@
                                     <span class="input-group-text">Rp</span>
                                     <input type="text" name="BiayaBooking" readonly
                                         class="form-control @error('BiayaBooking') is-invalid @enderror" id="BiayaBooking"
-                                        placeholder="Total Harga" value="{{ old('BiayaBooking', $booking->Total ?? '') }}"
-                                        autocomplete="off">
+                                        placeholder="Total Harga"
+                                        value="{{ old('BiayaBooking', $booking->Total ?? '') }}" autocomplete="off">
                                 </div>
                                 @error('BiayaBooking')
                                     <div class="text-danger mt-1">{{ $message }}</div>

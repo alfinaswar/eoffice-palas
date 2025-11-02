@@ -43,7 +43,7 @@ class TransaksiController extends Controller
     public function create($id)
     {
         $id = decrypt($id);
-        $booking = BookingList::with('getPenawaran')->find($id);
+        $booking = BookingList::with('getPenawaran', 'getProduk')->find($id);
         $angsuran = MasterAngsuran::get();
         return view('transaksi.create', compact('booking', 'angsuran'));
     }
@@ -53,7 +53,16 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'TanggalTransaksi' => 'required|date',
+            'IdPelanggan' => 'required',
+            'IdPetugas' => 'required',
+            'JenisTransaksi' => 'required',
+            'TotalHarga' => 'required|numeric',
+        ]);
+
         $generateKode = $this->generateKodeTransaksi();
+
         $transaksi = Transaksi::create([
             'KodeTransaksi' => $generateKode,
             'IdProduk' => $request->IdProduk,
@@ -62,26 +71,57 @@ class TransaksiController extends Controller
             'IdPetugas' => $request->IdPetugas,
             'JenisTransaksi' => $request->JenisTransaksi,
             'DurasiPembayaran' => $request->DurasiAngsuran,
-            'TotalHarga' => $request->TotalHarga,
+            'TotalHarga' => str_replace(['.', ','], '', $request->TotalHarga),
             'UangMuka' => $request->UangMuka ?? null,
             'SisaBayar' => $request->SisaBayar ?? null,
             'Keterangan' => $request->Keterangan ?? null,
         ]);
 
-        $durasi = $request->DurasiAngsuran;
-        $besarCicilan = $request->TotalHarga / $request->DurasiAngsuran;
+        if ($request->JenisTransaksi == 'Kredit' && !empty($request->DurasiAngsuran)) {
+            $angsuran = MasterAngsuran::find($request->DurasiAngsuran);
 
-        for ($i = 1; $i <= $durasi; $i++) {
+            if ($angsuran) {
+                $jumlahBulan = intval($angsuran->JumlahPembayaran);
+                $totalHarga = (float) str_replace(['.', ','], '', $request->TotalHarga);
+                $besarCicilan = $jumlahBulan > 0 ? $totalHarga / $jumlahBulan : 0;
+                $tanggalJatuhTempoAwal = $angsuran->TanggalJatuhTempo;
+                if (!$tanggalJatuhTempoAwal) {
+                    $tanggalJatuhTempoAwal = $request->TanggalTransaksi;
+                }
+
+                for ($i = 1; $i <= $jumlahBulan; $i++) {
+                    $carbonStart = \Carbon\Carbon::parse($request->TanggalTransaksi)->startOfMonth()->addMonths($i - 1);
+                    $hariJatuhTempo = intval($angsuran->TanggalJatuhTempo);
+                    if ($hariJatuhTempo < 1 || $hariJatuhTempo > 28) {
+                        $hariJatuhTempo = 1;
+                    }
+                    $tanggalJatuhTempo = $carbonStart->setDay($hariJatuhTempo)->format('Y-m-d');
+
+                    TransaksiDetail::create([
+                        'IdTransaksi' => $transaksi->id,
+                        'IdPelanggan' => $request->IdPelanggan,
+                        'CicilanKe' => $i,
+                        'BesarCicilan' => $besarCicilan,
+                        'TotalPembayaran' => $besarCicilan,
+                        'TanggalJatuhTempo' => $tanggalJatuhTempo,
+                        'Status' => 'Tidak',
+                        'UserCreated' => auth()->user()->name,
+                    ]);
+                }
+            }
+        } else {
             TransaksiDetail::create([
                 'IdTransaksi' => $transaksi->id,
                 'IdPelanggan' => $request->IdPelanggan,
-                'CicilanKe' => $i,
-                'BesarCicilan' => $besarCicilan,
-                'TotalPembayaran' => $besarCicilan,
-                'Status' => 'Tidak',
+                'CicilanKe' => 1,
+                'BesarCicilan' => str_replace(['.', ','], '', $request->TotalHarga),
+                'TotalPembayaran' => str_replace(['.', ','], '', $request->TotalHarga),
+                'TanggalJatuhTempo' => $request->TanggalTransaksi,
+                'Status' => 'Lunas',
                 'UserCreated' => auth()->user()->name,
             ]);
         }
+
         activity()
             ->causedBy(auth()->user())
             ->withProperties(['ip' => request()->ip()])
@@ -131,7 +171,7 @@ class TransaksiController extends Controller
     public function show($id)
     {
         $id = decrypt($id);
-        $data = Transaksi::with('getTransaksi')->find($id);
+        $data = Transaksi::with('getTransaksi', 'getUser', 'getProduk', 'getDurasiPembayaran')->find($id);
         return view('transaksi.tagihan-pelanggan', compact('data'));
     }
 
@@ -142,6 +182,7 @@ class TransaksiController extends Controller
     {
         //
     }
+
     public function PembayaranTagihan(Request $request)
     {
         $request->validate([
@@ -149,23 +190,35 @@ class TransaksiController extends Controller
         ]);
 
         $id_transaksi_detail = decrypt($request->input('IdTransaksiDetail'));
-        // dd();
-        $transaksiDetail = TransaksiDetail::findOrFail($id_transaksi_detail);
+        $transaksiDetail = TransaksiDetail::with('transaksi')->findOrFail($id_transaksi_detail);
+
         $transaksiDetail->KodeBayar = $this->generateKodeBayar();
         $transaksiDetail->Status = 'Lunas';
         $transaksiDetail->DibayarPada = now();
         $transaksiDetail->DibayarOleh = $request->input('DibayarOleh');
         $transaksiDetail->save();
 
-        // $transaksi = $transaksiDetail;
-        // $belumLunas = $transaksi->getTransaksi()->where('Status', '!=', 'Lunas')->count();
-        // if ($belumLunas == 0) {
-        //     $transaksi->StatusPembayaran = 'Lunas';
-        //     $transaksi->save();
-        // }
+        $transaksi = $transaksiDetail->transaksi;
+        if ($transaksi) {
+            $totalSisa = $transaksi->getTransaksi()->where('Status', '!=', 'Lunas')->sum('BesarCicilan');
+            $transaksi->SisaBayar = $totalSisa;
+            $transaksi->save();
+        }
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'transaksi_detail_id' => $transaksiDetail->id,
+                'kode_bayar' => $transaksiDetail->KodeBayar,
+                'dibayar_oleh' => $transaksiDetail->DibayarOleh,
+                'nominal' => $transaksiDetail->BesarCicilan,
+            ])
+            ->log('Pembayaran tagihan berhasil untuk Kode Bayar: ' . $transaksiDetail->KodeBayar);
 
         return redirect()->back()->with('success', 'Pembayaran berhasil diproses.');
     }
+
     public function generateKodeBayar()
     {
         do {

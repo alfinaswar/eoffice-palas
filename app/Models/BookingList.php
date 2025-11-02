@@ -28,17 +28,24 @@ class BookingList extends Model
     {
         return $this->hasOne(User::class, 'id', 'NamaPelanggan');
     }
+
     public function getKaryawan()
     {
         return $this->hasOne(User::class, 'id', 'Penerima');
     }
+
     public function getProduk()
     {
         return $this->hasOne(Produk::class, 'id', 'IdProduk');
     }
+
     public function getPenawaran()
     {
         return $this->hasOne(PenawaranHarga::class, 'id', 'IdPenawaran');
     }
 
+    public function getKantor()
+    {
+        return $this->hasOne(MasterKantor::class, 'Kode', 'KodeKantor');
+    }
 }

@@ -27,6 +27,9 @@ class MasterAngsuranController extends Controller
                 ->editColumn('JumlahPembayaran', function ($row) {
                     return $row->JumlahPembayaran . ' Kali / Bulan';
                 })
+                ->editColumn('TanggalJatuhTempo', function ($row) {
+                    return $row->TanggalJatuhTempo . ' Setiap Bulan';
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -49,6 +52,7 @@ class MasterAngsuranController extends Controller
             'JumlahPembayaran' => $request->JumlahPembayaran,
             'KonversiTahun' => $request->KonversiTahun,
             'Bunga' => $request->Bunga,
+            'TanggalJatuhTempo' => $request->TanggalJatuhTempo,
             'UserCreated' => auth()->user()->name,
         ]);
 
@@ -79,6 +83,7 @@ class MasterAngsuranController extends Controller
             'JumlahPembayaran' => $request->JumlahPembayaran,
             'KonversiTahun' => $request->KonversiTahun,
             'Bunga' => $request->Bunga,
+            'TanggalJatuhTempo' => $request->TanggalJatuhTempo,
             'UserUpdated' => auth()->user()->name
         ]);
 

@@ -37,6 +37,7 @@
                                     <th>Lama Angsuran (Tahun)</th>
                                     <th>Lama Angsuran (Bulan)</th>
                                     <th>Bunga (%)</th>
+                                    <th>Tanggal Jatuh Tempo</th>
                                     <th width="15%">Aksi</th>
                                 </tr>
                             </thead>
@@ -133,7 +134,10 @@
                             data: 'Bunga',
                             name: 'Bunga'
                         },
-
+                        {
+                            data: 'TanggalJatuhTempo',
+                            name: 'TanggalJatuhTempo'
+                        },
                         {
                             data: 'action',
                             name: 'action',

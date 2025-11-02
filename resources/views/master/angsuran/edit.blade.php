@@ -61,6 +61,23 @@
                                     </div>
                                 @enderror
                             </div>
+                            <div class="col-md-4">
+                                <label for="TanggalJatuhTempo" class="form-label">
+                                    <strong>Tanggal Jatuh Tempo</strong>
+                                    <br>
+                                    <small class="text-muted">Keterangan: ini berlaku untuk setiap bulan</small>
+                                </label>
+                                <input type="number" name="TanggalJatuhTempo"
+                                    class="form-control @error('TanggalJatuhTempo') is-invalid @enderror"
+                                    id="TanggalJatuhTempo" placeholder="Contoh: 25 Setiap Bulan"
+                                    value="{{ old('TanggalJatuhTempo', $angsuran->TanggalJatuhTempo) }}" min="1"
+                                    max="31">
+                                @error('TanggalJatuhTempo')
+                                    <div class="text-danger mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                             <div class="col-12 text-end mt-3">
                                 <a href="{{ route('master-angsuran.index') }}" class="btn btn-secondary me-2">
                                     <i class="fa fa-arrow-left"></i> Kembali

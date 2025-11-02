@@ -21,6 +21,9 @@ class BookingListController extends Controller
             $data = BookingList::with('getKaryawan', 'getProduk', 'getCustomer')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
+                ->editColumn('KodeKantor', function ($row) {
+                    return $row->getKantor ? $row->getKantor->Nama : $row->KodeKantor;
+                })
                 ->addColumn('action', function ($row) {
                     $encryptedId = encrypt($row->id);
                     return '

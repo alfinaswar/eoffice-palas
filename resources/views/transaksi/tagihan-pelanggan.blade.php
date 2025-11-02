@@ -2,15 +2,16 @@
 
 @section('content')
     <div class="page-header">
-        <div class="row">
+        <div class="row align-items-center justify-content-between">
             <div class="col">
-                <h3 class="page-title">Formulir Transaksi</h3>
+                <h3 class="page-title">Transaksi</h3>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('transaksi.index') }}">Transaksi</a></li>
-                    <li class="breadcrumb-item active">Tambah Transaksi</li>
+                    <li class="breadcrumb-item active">Tagihan Transaksi</li>
                 </ul>
             </div>
+
         </div>
     </div>
 
@@ -24,24 +25,21 @@
                             <tbody>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Nama</th>
-                                    <td class="py-1 px-0">John Doe</td>
+                                    <td class="py-1 px-0">{{ $data->getUser->name ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Email</th>
-                                    <td class="py-1 px-0">johndoe@email.com</td>
+                                    <td class="py-1 px-0">{{ $data->getUser->email ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">No. Telepon</th>
-                                    <td class="py-1 px-0">0812-3456-7890</td>
+                                    <td class="py-1 px-0">{{ $data->getUser->nohp ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row" class="py-1 px-0">Alamat</th>
-                                    <td class="py-1 px-0">Jl. Mawar No. 123, Jakarta</td>
+                                    <td class="py-1 px-0">{{ $data->getUser->alamat ?? '-' }}</td>
                                 </tr>
-                                <tr>
-                                    <th scope="row" class="py-1 px-0">Tanggal Bergabung</th>
-                                    <td class="py-1 px-0">12 Jan 2023</td>
-                                </tr>
+
                             </tbody>
                         </table>
                     </div>
@@ -50,47 +48,30 @@
             <div class="col-xl-8 col-lg-12 col-md-8 d-flex">
                 <div class="card w-100">
                     <div class="card-body">
-                        <h5>Days Overview This Month</h5>
+                        <h5>Informasi Tagihan</h5>
                         <ul class="widget-attend">
                             <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>31</h4>
-                                    <h6>Total Working
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Nama Produk</h6>
+                                    <h4>{{ $data->getProduk->Nama ?? '-' }}</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="danger-card">
-                                    <h4>05</h4>
-                                    <h6>Abesent
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Total Harga</h6>
+                                    <h4>Rp {{ number_format($data->TotalHarga ?? 0, 0, ',', '.') }}</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="light-card">
-                                    <h4>28</h4>
-                                    <h6>Present
-                                        Days</h6>
+                                <div class="info-card">
+                                    <h6>Durasi Cicilan</h6>
+                                    <h4>{{ $data->getDurasiPembayaran->JumlahPembayaran ?? '-' }} bulan</h4>
                                 </div>
                             </li>
                             <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>02</h4>
-                                    <h6>Half
-                                        Days</h6>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="warming-card">
-                                    <h4>01</h4>
-                                    <h6>Late
-                                        Days</h6>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="success-card">
-                                    <h4>02</h4>
-                                    <h6>Holidays</h6>
+                                <div class="info-card">
+                                    <h6>Sisa Cicilan</h6>
+                                    <h4>Rp {{ number_format($data->SisaBayar ?? 0, 0, ',', '.') }}</h4>
                                 </div>
                             </li>
                         </ul>
@@ -107,14 +88,14 @@
             </div>
         </div>
         <ul class="table-top-head">
-            <li>
+            {{-- <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf"><img src="assets/img/icons/pdf.svg"
                         alt="img"></a>
             </li>
             <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel"><img src="assets/img/icons/excel.svg"
                         alt="img"></a>
-            </li>
+            </li> --}}
             <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><i data-feather="printer"
                         class="feather-rotate-ccw"></i></a>
@@ -173,6 +154,7 @@
                             <th>Kode Bayar</th>
                             <th>Pembayaran Ke</th>
                             <th>Besar Cicilan</th>
+                            <th>Tanggal Jatuh Tempo</th>
                             <th>Sudah Bayar ?</th>
                             <th>Aksi</th>
                         </tr>
@@ -185,6 +167,7 @@
                                 <td>{{ $value->KodeBayar }}</td>
                                 <td>Bulan Ke-{{ $value->CicilanKe }}</td>
                                 <td>{{ 'Rp ' . number_format($value->BesarCicilan, 0, ',', '.') }}</td>
+                                <td>{{ $value->TanggalJatuhTempo }}</td>
                                 <td>
                                     @if ($value->Status == 'Tidak')
                                         <span class="badge bg-warning text-dark">
@@ -198,6 +181,7 @@
                                         {{ $value->Status }}
                                     @endif
                                 </td>
+
                                 <td>
                                     @if ($value->StatusPembayaran !== 'Lunas')
                                         <button class="btn btn-success btn-sm btn-bayar"
@@ -212,6 +196,7 @@
                                         </span>
                                     @endif
                                 </td>
+
                             </tr>
                         @empty
                         @endforelse
@@ -226,6 +211,20 @@
 @endsection
 
 @push('js')
+    @if (session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        </script>
+    @endif
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const modalBayar = document.getElementById('modalBayar');
