@@ -10,6 +10,7 @@ use App\Http\Controllers\MasterGradeController;
 use App\Http\Controllers\MasterJenisController;
 use App\Http\Controllers\MasterKantorController;
 use App\Http\Controllers\MasterProjekController;
+use App\Http\Controllers\MenuLaporanController;
 use App\Http\Controllers\PenawaranHargaController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
@@ -140,6 +141,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
     });
+
     Route::prefix('transaksi')->group(function () {
         Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');
@@ -151,5 +153,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/pembayaran/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
         Route::get('/daftar-tagihan/{id}', [TransaksiController::class, 'Tagihan'])->name('transaksi.list-tagihan');
         Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
+    });
+    Route::prefix('laporan/omset')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'Omset'])->name('laporan-omset.index');
+        Route::get('/create/{id}', [MenuLaporanController::class, 'create'])->name('laporan-omset.create');
+        Route::post('/store', [MenuLaporanController::class, 'store'])->name('laporan-omset.store');
+        Route::get('/edit/{id}', [MenuLaporanController::class, 'edit'])->name('laporan-omset.edit');
+        Route::get('/cetak-bukti-pembayaran/{id}', [MenuLaporanController::class, 'PrintKwitansi'])->name('laporan-omset.print');
+        Route::put('/update/{id}', [MenuLaporanController::class, 'update'])->name('laporan-omset.update');
+        Route::get('/show/{id}', [MenuLaporanController::class, 'show'])->name('laporan-omset.show');
+        Route::delete('/delete/{id}', [MenuLaporanController::class, 'destroy'])->name('laporan-omset.destroy');
     });
 });

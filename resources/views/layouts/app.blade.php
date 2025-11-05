@@ -176,7 +176,7 @@
                         <h6 class="submenu-hdr">Laporan</h6>
                         <ul>
                             <li>
-                                <a href="{{ route('penawaran-harga.index') }}">
+                                <a href="{{ route('laporan-omset.index') }}">
                                     <i data-feather="file-text"></i>
                                     <span>Omset</span>
                                 </a>
