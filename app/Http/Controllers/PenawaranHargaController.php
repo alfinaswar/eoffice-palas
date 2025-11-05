@@ -162,6 +162,7 @@ class PenawaranHargaController extends Controller
 
         return view('penawaran-harga.edit', compact('penawaran', 'produk', 'customer'));
     }
+
     public function Approval($id)
     {
         $id = decrypt($id);
@@ -182,9 +183,7 @@ class PenawaranHargaController extends Controller
         $pdf = Pdf::loadHTML($pdfView);
 
         $filename = 'Penawaran_Harga_' . $penawaran->Nomor . '.pdf';
-
-        // download PDF
-        return $pdf->download($filename);
+        return $pdf->stream($filename);
     }
 
     /**
@@ -236,6 +235,7 @@ class PenawaranHargaController extends Controller
             ->log('Mengupdate penawaran harga: ' . $header->Nomor . ' untuk pelanggan: ' . $header->NamaPelanggan);
         return redirect()->route('penawaran-harga.index')->with('success', 'Penawaran harga berhasil diperbarui.');
     }
+
     public function UpdateApproval(Request $request, $id)
     {
         $request->validate([
@@ -258,7 +258,6 @@ class PenawaranHargaController extends Controller
         PenawaranHargaDetail::where('IdPenawaran', $header->id)
             ->where('id', $request->ApproveRadio)
             ->update(['Status' => 'Y']);
-
 
         activity()
             ->causedBy(auth()->user()->id)

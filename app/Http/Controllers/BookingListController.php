@@ -6,6 +6,7 @@ use App\Models\BookingList;
 use App\Models\MasterBank;
 use App\Models\PenawaranHarga;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Pdf;
@@ -159,17 +160,34 @@ class BookingListController extends Controller
 
     public function PrintKwitansi($id)
     {
-        $id = decrypt($id);
-        $data = BookingList::find($id);
+        try {
+            $id = decrypt($id);
+            $data = BookingList::with('getCustomer', 'getProduk', 'getKaryawan')->find($id);
 
-        // Custom paper size: A4 width, half A4 height (21cm x 14.85cm)
-        $customPaper = array(0, 0, 595.28, 419.53);  // in points (A4 width x half A4 height)
-        // 1 cm = 28.3465 points; 21cm = 595.28pt, 14.85cm = 419.53pt
+            if (!$data) {
+                return redirect()->back()->with('error', 'Data booking tidak ditemukan');
+            }
+            $width = 21 * 28.35;  // 595.35 points (lebar)
+            $height = 15 * 28.35;  // 425.25 points (tinggi)
 
-        $pdf = \PDF::loadView('booking-list.cetak-kwitansi', compact('data'))
-            ->setPaper($customPaper);
+            $customPaper = array(0, 0, $width, $height);
 
-        return $pdf->download('kwitansi-booking-' . $data->Nomor . '.pdf');
+            $pdf = Pdf::loadView('booking-list.cetak-kwitansi', compact('data'))
+                ->setPaper($customPaper, 'portrait')
+                ->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'dpi' => 96,
+                    'defaultFont' => 'Arial',
+                    'margin_top' => 0,
+                    'margin_right' => 0,
+                    'margin_bottom' => 0,
+                    'margin_left' => 0
+                ]);
+            return $pdf->stream('kwitansi-booking-' . $data->Nomor . '.pdf');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mencetak kwitansi: ' . $e->getMessage());
+        }
     }
 
     /**

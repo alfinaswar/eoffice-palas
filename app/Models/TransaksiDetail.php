@@ -32,4 +32,14 @@ class TransaksiDetail extends Model
     {
         return $this->belongsTo(Transaksi::class, 'IdTransaksi', 'id');
     }
+
+    /**
+     * Get the user associated with the TransaksiDetail
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function getCustomer()
+    {
+        return $this->hasOne(User::class, 'id', 'IdPelanggan');
+    }
 }

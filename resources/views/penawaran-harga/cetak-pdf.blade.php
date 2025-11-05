@@ -1,193 +1,229 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>Penawaran Harga - Cetak PDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cetak Penawaran Harga</title>
     <style>
         @page {
-            size: A4;
-            margin: 0;
-        }
-
-        html,
-        body {
-            width: 210mm;
-            height: 297mm;
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #fff;
+            margin: 0cm 0cm;
         }
 
         body {
-            position: relative;
-            min-height: 297mm;
+            font-family: 'Arial ', sans-serif;
+            /* font-size: 12px; */
+            margin-top: 4.0cm;
+            margin-bottom: 4.0cm;
+            margin-left: 2.54cm;
+            margin-right: 2.54cm;
+            font-size: 14px;
+            text-align: justify;
+            line-height: 0.7cm;
+
         }
 
-        .pdf-background {
+        .header {
+            text-align: center;
+        }
+
+        .watermark {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 210mm;
-            height: 297mm;
-            z-index: 0;
+            bottom: 0px;
+            left: 0px;
+            top: 0px;
+            right: 0px;
+            /* width: 21cm;
+            height: 29.7cm; */
+            width: 21cm;
+            height: 29.7cm;
+            z-index: -10;
         }
 
-        .pdf-content {
-            position: relative;
-            z-index: 1;
-            padding: 30mm 20mm 20mm 20mm;
-        }
-
-        h2,
-        h4,
-        h5 {
-            margin: 0 0 4mm 0;
-        }
-
-        .header-table {
+        .footer {
+            position: fixed;
+            bottom: 0;
             width: 100%;
-            margin-bottom: 10mm;
+            text-align: center;
+            font-size: 10px;
+            margin-top: 20px;
         }
 
-        .header-table td {
-            padding: 2mm 0;
-            vertical-align: top;
-        }
 
-        .info-label {
-            font-weight: bold;
-            width: 35mm;
-        }
-
-        table.detail-produk {
-            width: 100%;
+        #tabelTransaksi {
             border-collapse: collapse;
-            margin-top: 8mm;
-            margin-bottom: 10mm;
-            font-size: 12px;
-        }
-
-        table.detail-produk th,
-        table.detail-produk td {
-            border: 1px solid #aaa;
-            padding: 5px 8px;
-            text-align: left;
-        }
-
-        table.detail-produk th {
-            background: #eee;
-            text-align: center;
-        }
-
-        .text-end {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .fw-bold {
-            font-weight: bold;
-        }
-
-        .total-section {
             width: 100%;
-            margin-top: 10mm;
-            margin-bottom: 4mm;
+            padding: 1px;
+            vertical-align: middle;
+            line-height: 15px;
         }
 
-        .total-label {
-            font-weight: bold;
-            font-size: 1.1em;
+        #tabelTransaksi th {
+            border: 1px solid #000000;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #tabelTransaksi td {
+            border: 1px solid #000000;
+            padding: 5px;
+            text-align: left;
+            vertical-align: middle;
         }
     </style>
 </head>
 
 <body>
-    <!-- Ganti src sesuai path gambar watermark/background -->
-    <img class="pdf-background" src="{{ public_path('images/background-penawaran.png') }}" alt="Background" />
+    <div class="watermark">
+        <img src="{{ asset('storage/background_sertifikat/') }}" alt="" width="100%" height="100%">
+    </div>
+    <div style="margin-top: 0.3cm; margin-bottom: 0.3cm; align-content:center;">
+        <center>
+            <span style="font-size: 14pt; font-weight: bold;">PENAWARAN HARGA</span>
+        </center>
+    </div>
+    <table style="margin-top: 0.5cm;" id="header">
+        <thead>
+            <tr>
+                <td width="20%">Nomor Penawaran</td>
+                <td width="5%">:</td>
+                <td width="75%">{{ $penawaran->Nomor }}</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ditujukan Kepada</td>
+                <td>:</td>
+                <td style="text-transform: uppercase;">BAGIAN ADMINISTRASI PERUSAHAAN</td>
+            </tr>
+            <tr>
+                <td>Nama Calon Customer</td>
+                <td>:</td>
+                <td style="text-transform: uppercase;">{{ $penawaran->getCustomer->name }}</td>
+            </tr>
+            <tr>
+                <td>Alamat Customer</td>
+                <td>:</td>
+                <td>{{ $penawaran->getCustomer->alamat }}</td>
+            </tr>
+            <tr>
+                <td>No. Telepon Customer</td>
+                <td>:</td>
+                <td>0{{ $penawaran->getCustomer->nohp }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <div>
+        Berdasarkan harga yang diajukan oleh calon customer, bersama ini kami dari bagian Marketing mengajukan penawaran
+        harga sebagai berikut:
+    </div>
 
-    <div class="pdf-content">
-        <h2 style="text-align:center; margin-bottom:2mm;">PENAWARAN HARGA</h2>
-        <hr style="margin:0 0 7mm 0;border:0;border-top:2px solid #bbb;">
-
-        <table class="header-table">
+    <table id="tabelTransaksi">
+        <thead>
             <tr>
-                <td class="info-label">Nomor</td>
-                <td>: {{ $penawaran->Nomor }}</td>
+                <th>No</th>
+                <th>Nama Produk</th>
+                <th>Jumlah</th>
+                <th>Harga</th>
+                <th>Diskon</th>
+                <th>Harga Penawaran</th>
+                <th>Subtotal</th>
             </tr>
-            <tr>
-                <td class="info-label">Tanggal</td>
-                <td>: {{ \Carbon\Carbon::parse($penawaran->Tanggal)->format('d-m-Y') }}</td>
-            </tr>
-            <tr>
-                <td class="info-label">Nama Pelanggan</td>
-                <td>: {{ $penawaran->NamaPelanggan }}</td>
-            </tr>
-            @if (!empty($penawaran->Keterangan))
+        </thead>
+        <tbody>
+            @php
+                $total = 0;
+                $rowCount = count($penawaran->DetailPenawaran);
+            @endphp
+            @foreach ($penawaran->DetailPenawaran as $index => $item)
+                @php
+                    $total += $item->Subtotal;
+                @endphp
                 <tr>
-                    <td class="info-label">Keterangan</td>
-                    <td>: {{ $penawaran->Keterangan }}</td>
+                    <td>{{ $index + 1 }}</td>
+                    <td>
+                        {{ $item->getProduk->Nama ?? '-' }}
+                    </td>
+                    <td>{{ $item->Jumlah }}</td>
+                    <td>Rp {{ number_format($item->Harga, 0, ',', '.') }}</td>
+                    <td>
+                        @if ($item->JenisDiskon === 'Persen')
+                            {{ $item->Diskon }}%
+                        @elseif ($item->JenisDiskon === 'Rp')
+                            Rp {{ number_format($item->Diskon, 0, ',', '.') }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td>Rp {{ number_format($item->HargaPenawaran, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->Subtotal, 0, ',', '.') }}</td>
                 </tr>
-            @endif
-        </table>
-
-        <div style="margin-bottom:2mm;"><b>Detail Produk</b></div>
-        <table class="detail-produk">
-            <thead>
-                <tr>
-                    <th style="width: 26%">Produk</th>
-                    <th style="width: 11%">Harga</th>
-                    <th style="width: 14%">Harga Ditawarkan</th>
-                    <th style="width: 10%">Diskon</th>
-                    <th style="width: 9%">Jenis</th>
-                    <th style="width: 10%">Jumlah</th>
-                    <th style="width: 15%">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($penawaran->DetailPenawaran as $d)
-                    @php
-                        $produkItem = $produk->firstWhere('id', $d->IdProduk);
-                    @endphp
-                    <tr>
-                        <td>{{ $produkItem ? $produkItem->Nama : '-' }}</td>
-                        <td class="text-end">Rp {{ number_format($d->Harga, 0, ',', '.') }}</td>
-                        <td class="text-end">Rp
-                            {{ number_format(isset($d->HargaPenawaran) ? $d->HargaPenawaran : $d->Harga, 0, ',', '.') }}
-                        </td>
-                        <td class="text-end">{{ $d->Diskon }}</td>
-                        <td class="text-center">{{ $d->JenisDiskon == 'Persen' ? '%' : $d->JenisDiskon }}</td>
-                        <td class="text-center">{{ isset($d->Jumlah) ? $d->Jumlah : 1 }}</td>
-                        <td class="text-end">Rp
-                            {{ number_format(isset($d->Subtotal) ? $d->Subtotal : (isset($d->subtotal) ? $d->subtotal : 0), 0, ',', '.') }}
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <table class="total-section">
+            @endforeach
             <tr>
-                <td class="total-label" style="width:70%; text-align:right;">Total Penawaran :</td>
-                <td class="fw-bold text-end" style="font-size:1.1em;">
-                    Rp {{ number_format($penawaran->Total, 0, ',', '.') }}
+                <td colspan="6" style="text-align: right; font-weight: bold;">Total</td>
+                <td style="font-weight: bold;">Rp {{ number_format($total, 0, ',', '.') }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <span>Terbilang : {{ terbilang($total) }} rupiah</span>
+
+    </div>
+    <div>
+        <p>
+            Bersama surat ini, kami dari <strong>Tim Marketing</strong> bermaksud untuk mengajukan penawaran harga atas
+            produk/jasa yang telah dibahas dengan calon customer. Penawaran ini kami susun berdasarkan permintaan dari
+            pihak customer serta mempertimbangkan harga terbaik yang dapat kami ajukan.
+        </p>
+        <p>
+            Besar harapan kami agar kerjasama ini dapat terwujud serta memberikan manfaat bagi kedua belah pihak. Atas
+            perhatian dan kepercayaan yang diberikan, kami ucapkan terima kasih.<br><br>
+            Hormat kami,<br>
+            <strong>Tim Marketing</strong>
+        </p>
+    </div>
+    <div id="deskripsi">
+
+    </div>
+    {{-- <section style="page-break-inside: avoid; break-inside: avoid;">
+        <table width="100%">
+            <tr>
+                <td>Pekanbaru, {{ \Carbon\Carbon::parse($data->TanggalPo)->translatedFormat('d F Y') }}</td>
+            </tr>
+            <tr>
+                <td>Pemesan</td>
+                <td>Dibuat Oleh,</td>
+                <td>Menyetujui,</td>
+            </tr>
+            <tr style="line-height: 2cm; vertical-align: middle;">
+                <td></td>
+                <td>
+                    <img src="{{ asset('storage/DigitalSign/' . $data->getUser->DigitalSign ?? null) }}" alt="Signature"
+                        style="width: 100px; height: auto;">
+
+                </td>
+                <td>
+                    <img src="{{ asset('storage/DigitalSign/' . $data->getKaryawan->DigitalSign ?? null) }}"
+                        alt="Signature" style="width: 100px; height: auto;">
+
                 </td>
             </tr>
+            <tr style="font-weight: bold">
+                <td>(.......................................)</td>
+                <td>
+                    {{ $data->getUser->name }}
+                </td>
+                <td>
+                    {{ $data->getKaryawan->name ?? null }}
+                </td>
+            </tr>
+
+
         </table>
 
-        <div style="margin-top:18mm;">
-            <div style="width:50%;float:right;text-align:center;">
-                <div>Hormat Kami,</div>
-                <div style="height:26mm;"></div>
-                <div style="font-weight:bold;">(__________________________)</div>
-                <div style="font-size:smaller;">PT. Nama Perusahaan</div>
-            </div>
-        </div>
-    </div>
+    </section> --}}
 </body>
 
 </html>

@@ -124,41 +124,58 @@
                         searchable: false
                     },
                     {
-                        data: 'tanggal',
-                        name: 'tanggal'
+                        data: 'id',
+                        name: 'id'
                     },
                     {
-                        data: 'proyek',
-                        name: 'proyek'
+                        data: 'IdTransaksi',
+                        name: 'IdTransaksi'
                     },
                     {
-                        data: 'pelanggan',
-                        name: 'pelanggan'
+                        data: 'KodeBayar',
+                        name: 'KodeBayar'
                     },
                     {
-                        data: 'nilai_transaksi',
-                        name: 'nilai_transaksi',
+                        data: 'IdPelanggan',
+                        name: 'IdPelanggan'
+                    },
+                    {
+                        data: 'CicilanKe',
+                        name: 'CicilanKe'
+                    },
+                    {
+                        data: 'BesarCicilan',
+                        name: 'BesarCicilan',
                         className: 'text-end',
                         render: function(data, type, row) {
                             return formatRupiah(data);
                         }
                     },
                     {
-                        data: 'status',
-                        name: 'status'
+                        data: 'TotalPembayaran',
+                        name: 'TotalPembayaran',
+                        className: 'text-end',
+                        render: function(data, type, row) {
+                            return formatRupiah(data);
+                        }
+                    },
+                    {
+                        data: 'TanggalJatuhTempo',
+                        name: 'TanggalJatuhTempo'
+                    },
+                    {
+                        data: 'DibayarOleh',
+                        name: 'DibayarOleh'
+                    },
+                    {
+                        data: 'DibayarPada',
+                        name: 'DibayarPada'
+                    },
+                    {
+                        data: 'Status',
+                        name: 'Status'
                     }
                 ],
-                drawCallback: function(settings) {
-                    var api = this.api();
-                    var totalOmset = api.column(4, {
-                        page: 'current'
-                    }).data().reduce(function(a, b) {
-                        a = parseInt(a) || 0;
-                        b = parseInt(b) || 0;
-                        return a + b;
-                    }, 0);
-                    $('#totalOmset').html(formatRupiah(totalOmset));
-                }
             });
 
             $('#filterOmsetForm').on('submit', function(e) {
