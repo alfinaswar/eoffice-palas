@@ -183,7 +183,7 @@
                                 </td>
 
                                 <td>
-                                    @if ($value->StatusPembayaran !== 'Lunas')
+                                    @if ($value->Status !== 'Lunas')
                                         <button class="btn btn-success btn-sm btn-bayar"
                                             data-id="{{ encrypt($value->id) }}" data-cicilanke="{{ $value->CicilanKe }}"
                                             data-besarcicilan="{{ 'Rp ' . number_format($value->BesarCicilan, 0, ',', '.') }}"
@@ -191,9 +191,10 @@
                                             <i data-feather="credit-card" class="me-1"></i> Bayar
                                         </button>
                                     @else
-                                        <span class="badge bg-success">
-                                            <i data-feather="check-circle" class="me-1"></i> Lunas
-                                        </span>
+                                        <a href="{{ route('transaksi.cetak-bukti-bayar', encrypt($value->id)) }}"
+                                            target="_blank" class="btn btn-info btn-sm">
+                                            <i data-feather="printer" class="me-1"></i> Cetak Kwitansi
+                                        </a>
                                     @endif
                                 </td>
 

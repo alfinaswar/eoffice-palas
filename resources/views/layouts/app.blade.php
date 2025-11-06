@@ -173,6 +173,18 @@
                         </ul>
                     </li>
                     <li class="submenu-open">
+                        <h6 class="submenu-hdr">Kas</h6>
+                        <ul>
+
+                            <li>
+                                <a href="{{ route('transaksi-keluar.index') }}">
+                                    <i data-feather="arrow-up-circle"></i>
+                                    <span>Uang Keluar</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="submenu-open">
                         <h6 class="submenu-hdr">Laporan</h6>
                         <ul>
                             <li>

@@ -23,21 +23,11 @@ class TransaksiDetail extends Model
      */
     protected $guarded = ['id'];
 
-    /**
-     * Get the user associated with the TransaksiDetail
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function transaksi()
     {
-        return $this->belongsTo(Transaksi::class, 'IdTransaksi', 'id');
+        return $this->hasOne(Transaksi::class, 'IdTransaksi', 'id');
     }
 
-    /**
-     * Get the user associated with the TransaksiDetail
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function getCustomer()
     {
         return $this->hasOne(User::class, 'id', 'IdPelanggan');

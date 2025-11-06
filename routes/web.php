@@ -17,6 +17,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\TransaksiKeluarController;
 use App\Http\Controllers\UserController;
 use App\Models\MasterJenisPengeluaran;
 use Illuminate\Support\Facades\Auth;
@@ -152,17 +153,28 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
     });
 
-    Route::prefix('transaksi')->group(function () {
+    Route::prefix('transaksi/masuk')->group(function () {
         Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');
         Route::post('/store', [TransaksiController::class, 'store'])->name('transaksi.store');
         Route::post('/bayar-tagihan', [TransaksiController::class, 'PembayaranTagihan'])->name('transaksi.bayar');
         Route::get('/edit/{id}', [TransaksiController::class, 'edit'])->name('transaksi.edit');
-        Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
+        // Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.print');
         Route::put('/update/{id}', [TransaksiController::class, 'update'])->name('transaksi.update');
         Route::get('/pembayaran/{id}', [TransaksiController::class, 'show'])->name('transaksi.show');
+        Route::get('/cetak-kwitansi/{id}', [TransaksiController::class, 'PrintKwitansi'])->name('transaksi.cetak-bukti-bayar');
         Route::get('/daftar-tagihan/{id}', [TransaksiController::class, 'Tagihan'])->name('transaksi.list-tagihan');
         Route::delete('/delete/{id}', [TransaksiController::class, 'destroy'])->name('transaksi.destroy');
+    });
+    Route::prefix('transaksi/keluar')->group(function () {
+        Route::get('/', [TransaksiKeluarController::class, 'index'])->name('transaksi-keluar.index');
+        Route::get('/create', [TransaksiKeluarController::class, 'create'])->name('transaksi-keluar.create');
+        Route::post('/store', [TransaksiKeluarController::class, 'store'])->name('transaksi-keluar.store');
+        Route::get('/edit/{id}', [TransaksiKeluarController::class, 'edit'])->name('transaksi-keluar.edit');
+        Route::get('/cetak-bukti-pembayaran/{id}', [TransaksiKeluarController::class, 'PrintKwitansi'])->name('transaksi-keluar.print');
+        Route::put('/update/{id}', [TransaksiKeluarController::class, 'update'])->name('transaksi-keluar.update');
+        Route::get('/show/{id}', [TransaksiKeluarController::class, 'show'])->name('transaksi-keluar.show');
+        Route::delete('/delete/{id}', [TransaksiKeluarController::class, 'destroy'])->name('transaksi-keluar.destroy');
     });
     Route::prefix('laporan/omset')->group(function () {
         Route::get('/', [MenuLaporanController::class, 'Omset'])->name('laporan-omset.index');

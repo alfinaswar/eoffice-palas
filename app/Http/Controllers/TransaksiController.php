@@ -9,6 +9,7 @@ use App\Models\TransaksiDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Pdf;
 
 class TransaksiController extends Controller
 {
@@ -34,7 +35,7 @@ class TransaksiController extends Controller
                 ->make(true);
         }
         $booking = BookingList::with('getProduk', 'getCustomer')->latest()->get();
-        return view('transaksi.index', compact('booking'));
+        return view('transaksi.masuk.index', compact('booking'));
     }
 
     /**
@@ -45,7 +46,35 @@ class TransaksiController extends Controller
         $id = decrypt($id);
         $booking = BookingList::with('getPenawaran', 'getProduk')->find($id);
         $angsuran = MasterAngsuran::get();
-        return view('transaksi.create', compact('booking', 'angsuran'));
+        return view('transaksi.masuk.create', compact('booking', 'angsuran'));
+    }
+
+    public function PrintKwitansi($id)
+    {
+        $id = decrypt($id);
+        $data = TransaksiDetail::where('id', $id)->first();
+
+        if (!$data) {
+            return redirect()->back()->with('error', 'Data Pembayaran tidak ditemukan');
+        }
+        $width = 21 * 28.35;  // 595.35 points (lebar)
+        $height = 15 * 28.35;  // 425.25 points (tinggi)
+
+        $customPaper = array(0, 0, $width, $height);
+
+        $pdf = Pdf::loadView('transaksi.masuk.cetak-kwitansi', compact('data'))
+            ->setPaper($customPaper, 'portrait')
+            ->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'dpi' => 96,
+                'defaultFont' => 'Arial',
+                'margin_top' => 0,
+                'margin_right' => 0,
+                'margin_bottom' => 0,
+                'margin_left' => 0
+            ]);
+        return $pdf->stream('kwitansi-' . $data->KodeBayar . '.pdf');
     }
 
     /**
@@ -162,7 +191,7 @@ class TransaksiController extends Controller
     {
         $id = decrypt($id);
         $data = user::with('getTransaksi')->find($id);
-        return view('transaksi.show', compact('data'));
+        return view('transaksi.masuk.show', compact('data'));
     }
 
     /**
@@ -172,7 +201,7 @@ class TransaksiController extends Controller
     {
         $id = decrypt($id);
         $data = Transaksi::with('getTransaksi', 'getUser', 'getProduk', 'getDurasiPembayaran')->find($id);
-        return view('transaksi.tagihan-pelanggan', compact('data'));
+        return view('transaksi.masuk.tagihan-pelanggan', compact('data'));
     }
 
     /**

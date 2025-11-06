@@ -63,6 +63,7 @@ class MasterJenisPengeluaranController extends Controller
 
     public function update(Request $request, $id)
     {
+        $id = decrypt($id);
         $request->validate([
             'Nama' => 'required|string|max:255',
         ]);
@@ -78,7 +79,7 @@ class MasterJenisPengeluaranController extends Controller
             ->withProperties(['ip' => request()->ip()])
             ->log('Memperbarui master jenis pengeluaran: ' . $request->Nama);
 
-        return redirect()->route('master-jenis-pengeluaran.index')->with('success', 'Master jenis pengeluaran berhasil diperbarui.');
+        return redirect()->route('master-pengeluaran.index')->with('success', 'Master jenis pengeluaran berhasil diperbarui.');
     }
 
     public function destroy($id)
