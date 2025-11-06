@@ -8,6 +8,7 @@ use App\Http\Controllers\MasterBankController;
 use App\Http\Controllers\MasterCustomer;
 use App\Http\Controllers\MasterGradeController;
 use App\Http\Controllers\MasterJenisController;
+use App\Http\Controllers\MasterJenisPengeluaranController;
 use App\Http\Controllers\MasterKantorController;
 use App\Http\Controllers\MasterProjekController;
 use App\Http\Controllers\MenuLaporanController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UserController;
+use App\Models\MasterJenisPengeluaran;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -100,6 +102,14 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/update/{id}', [MasterAngsuranController::class, 'update'])->name('master-angsuran.update');
         Route::delete('/delete/{id}', [MasterAngsuranController::class, 'destroy'])->name('master-angsuran.destroy');
     });
+    Route::prefix('master/jenis-pengeluaran')->group(function () {
+        Route::get('/', [MasterJenisPengeluaranController::class, 'index'])->name('master-pengeluaran.index');
+        Route::get('/create', [MasterJenisPengeluaranController::class, 'create'])->name('master-pengeluaran.create');
+        Route::post('/store', [MasterJenisPengeluaranController::class, 'store'])->name('master-pengeluaran.store');
+        Route::get('/edit/{id}', [MasterJenisPengeluaranController::class, 'edit'])->name('master-pengeluaran.edit');
+        Route::put('/update/{id}', [MasterJenisPengeluaranController::class, 'update'])->name('master-pengeluaran.update');
+        Route::delete('/delete/{id}', [MasterJenisPengeluaranController::class, 'destroy'])->name('master-pengeluaran.destroy');
+    });
     Route::prefix('master/jenis-produk')->group(function () {
         Route::get('/', [MasterJenisController::class, 'index'])->name('master-jenis-produk.index');
         Route::get('/create', [MasterJenisController::class, 'create'])->name('master-jenis-produk.create');
@@ -156,12 +166,6 @@ Route::group(['middleware' => ['auth']], function () {
     });
     Route::prefix('laporan/omset')->group(function () {
         Route::get('/', [MenuLaporanController::class, 'Omset'])->name('laporan-omset.index');
-        Route::get('/create/{id}', [MenuLaporanController::class, 'create'])->name('laporan-omset.create');
-        Route::post('/store', [MenuLaporanController::class, 'store'])->name('laporan-omset.store');
-        Route::get('/edit/{id}', [MenuLaporanController::class, 'edit'])->name('laporan-omset.edit');
-        Route::get('/cetak-bukti-pembayaran/{id}', [MenuLaporanController::class, 'PrintKwitansi'])->name('laporan-omset.print');
-        Route::put('/update/{id}', [MenuLaporanController::class, 'update'])->name('laporan-omset.update');
-        Route::get('/show/{id}', [MenuLaporanController::class, 'show'])->name('laporan-omset.show');
-        Route::delete('/delete/{id}', [MenuLaporanController::class, 'destroy'])->name('laporan-omset.destroy');
+        Route::post('/store', [MenuLaporanController::class, 'DownloadOmset'])->name('laporan-omset.download');
     });
 });

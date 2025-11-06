@@ -44,39 +44,7 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="col-xl-8 col-lg-12 col-md-8 d-flex">
-                <div class="card w-100">
-                    <div class="card-body">
-                        <h5>Days Overview This Month</h5>
-                        <ul class="widget-attend">
-                            <li class="box-attend">
-                                <div class="info-card">
-                                    <h6>Nama Produk</h6>
-                                    <h4>{{ $data->getProduk->Nama ?? '-' }}</h4>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="info-card">
-                                    <h6>Total Harga</h6>
-                                    <h4>Rp {{ number_format($data->TotalHarga ?? 0, 0, ',', '.') }}</h4>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="info-card">
-                                    <h6>Durasi Cicilan</h6>
-                                    <h4>{{ $data->getDurasiPembayaran->JumlahPembayaran ?? '-' }} bulan</h4>
-                                </div>
-                            </li>
-                            <li class="box-attend">
-                                <div class="info-card">
-                                    <h6>Sisa Cicilan</h6>
-                                    <h4>Rp {{ number_format($data->SisaBayar ?? 0, 0, ',', '.') }}</h4>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div> --}}
+
 
         </div>
     </div>
@@ -87,14 +55,14 @@
             </div>
         </div>
         <ul class="table-top-head">
-            <li>
+            {{-- <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Pdf"><img src="assets/img/icons/pdf.svg"
                         alt="img"></a>
             </li>
             <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Excel"><img src="assets/img/icons/excel.svg"
                         alt="img"></a>
-            </li>
+            </li> --}}
             <li>
                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Print"><i data-feather="printer"
                         class="feather-rotate-ccw"></i></a>
@@ -102,56 +70,18 @@
         </ul>
     </div>
     <!-- /product list -->
+
     <div class="card table-list-card">
+        <div class="card-header bg-dark">
+            <h4 class="card-title mb-0">Daftar Transaksi</h4>
+            <p class="card-text mb-0">
+                Daftar Transaksi
+            </p>
+        </div>
         <div class="card-body pb-0">
-            <div class="table-top">
 
-                <div class="input-blocks search-set mb-0">
-                    <!-- <div class="total-employees">
-                                                                                                                                                                                                                                                                                      <h6><i data-feather="users" class="feather-user"></i>Total Employees <span>21</span></h6>
-                                                                                                                                                                                                                                                                                     </div> -->
-                    <div class="search-input">
-                        <a href="" class="btn btn-searchset"><i data-feather="search" class="feather-search"></i></a>
-                    </div>
-
-                </div>
-                <div class="search-path">
-                    <div class="d-flex align-items-center">
-                        <a class="btn btn-filter" id="filter_search">
-                            <i data-feather="filter" class="filter-icon"></i>
-                            <span><img src="assets/img/icons/closes.svg" alt="img"></span>
-                        </a>
-                    </div>
-                </div>
-
-
-            </div>
-            <!-- /Filter -->
-            <div class="card" id="filter_inputs">
-                <div class="card-body pb-0">
-                    <div class="row">
-
-                        <div class="col-lg-4 col-sm-6 col-12">
-                            <div class="input-blocks">
-                                <i data-feather="calendar" class="info-img"></i>
-                                <div class="input-groupicon">
-                                    <input type="text" class="datetimepicker" placeholder="Choose Date">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-4 col-sm-6 col-12 ms-auto">
-                            <div class="input-blocks">
-                                <a class="btn btn-filters ms-auto"> <i data-feather="search" class="feather-search"></i>
-                                    Search </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- /Filter -->
             <div class="table-responsive">
-                <table class="table  datanew">
+                <table class="table datanew">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -197,13 +127,9 @@
                             </tr>
                         @empty
                         @endforelse
-
-
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <!-- /Main Wrapper -->
 @endsection

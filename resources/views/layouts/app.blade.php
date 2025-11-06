@@ -253,6 +253,12 @@
                                             <span>Master Angsuran</span>
                                         </a>
                                     </li>
+                                    <li>
+                                        <a href="{{ route('master-pengeluaran.index') }}">
+                                            <i data-feather="repeat"></i>
+                                            <span>Master Jenis Pengeluaran</span>
+                                        </a>
+                                    </li>
                                     {{-- Tambahkan menu master data lain di sini jika diperlukan --}}
                                 </ul>
                             </li>
