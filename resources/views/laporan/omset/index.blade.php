@@ -83,6 +83,7 @@
                                     <th width="5%">No</th>
                                     <th>Bulan</th>
                                     <th>Total Omset</th>
+                                    <th>Total Pengeluaran</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -90,9 +91,18 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="2" class="text-end">Total Omset:</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th class="text-end">Total Omset:</th>
                                     <th id="totalOmset" class="text-end">Rp 0</th>
                                 </tr>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th class="text-end">Total Pengeluaran:</th>
+                                    <th id="totalKeluar" class="text-end">Rp 0</th>
+                                </tr>
+
                             </tfoot>
                         </table>
                     </div>
@@ -149,13 +159,20 @@
                     },
                     {
                         data: 'TotalOmset',
-                        name: 'TotalOmset'
+                        name: 'TotalOmset',
+                        className: 'text-end'
+                    },
+                    {
+                        data: 'TotalKeluar',
+                        name: 'TotalKeluar',
+                        className: 'text-end'
                     },
                 ],
                 drawCallback: function(settings) {
-                    // Hitung total omset setelah data di-load
+                    // Hitung total omset dan total pengeluaran setelah data di-load
                     var api = this.api();
-                    var total = 0;
+                    var totalOmset = 0;
+                    var totalKeluar = 0;
                     var now = new Date();
                     var nowMonth = (now.getMonth() + 1).toString().padStart(2, '0');
                     var nowYear = now.getFullYear().toString();
@@ -173,14 +190,18 @@
                         // Ambil nilai TotalOmset, hilangkan "Rp", titik dan spasi, lalu parse ke integer
                         if (data.TotalOmset !== undefined) {
                             var num = data.TotalOmset.replace(/[^\d,]/g, '').replace(',', '.');
-                            total += parseFloat(num) || 0;
+                            totalOmset += parseFloat(num) || 0;
+                        }
+                        // Ambil nilai TotalKeluar, hilangkan "Rp", titik dan spasi, lalu parse ke integer
+                        if (data.TotalKeluar !== undefined) {
+                            var numKeluar = data.TotalKeluar.replace(/[^\d,]/g, '').replace(',',
+                                '.');
+                            totalKeluar += parseFloat(numKeluar) || 0;
                         }
 
                         // Highlight baris jika bulan dan tahun sama dengan saat ini
                         if (data.Bulan !== undefined) {
                             // Format "Januari 2024" dst dari server, ambil bulan & tahun
-                            // Namun sebenarnya data.Bulan aslinya dikirim lewat kolom, dan view tampilkan yang sudah diformat.
-                            // Kita bisa parsing dari data.Bulan, atau lebih aman: minta data.Bulan asli hidden (tapi sekarang manual parsing)
                             var text = $('<div>').html(data.Bulan).text()
                                 .trim(); // safe: strip HTML
                             // Ambil nama bulan (berbahasa Indonesia) dan tahun
@@ -226,7 +247,8 @@
                         }
                         return rupiah;
                     }
-                    $('#totalOmset').html('Rp ' + formatRupiah(total));
+                    $('#totalOmset').html('Rp ' + formatRupiah(totalOmset));
+                    $('#totalKeluar').html('Rp ' + formatRupiah(totalKeluar));
                 }
             });
 

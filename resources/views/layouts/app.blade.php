@@ -193,7 +193,12 @@
                                     <span>Omset</span>
                                 </a>
                             </li>
-
+                            <li>
+                                <a href="{{ route('laporan-penjualan.index') }}">
+                                    <i data-feather="file-text"></i>
+                                    <span>Penjualan</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="submenu-open">

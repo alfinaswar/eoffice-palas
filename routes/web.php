@@ -180,4 +180,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/', [MenuLaporanController::class, 'Omset'])->name('laporan-omset.index');
         Route::post('/store', [MenuLaporanController::class, 'DownloadOmset'])->name('laporan-omset.download');
     });
+    Route::prefix('laporan/penjualan')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'Penjualan'])->name('laporan-penjualan.index');
+        Route::post('/store', [MenuLaporanController::class, 'DownloadPenjualan'])->name('laporan-penjualan.download');
+    });
 });

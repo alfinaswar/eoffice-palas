@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Exports\OmsetExport;
+use App\Models\Produk;
+use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
+use App\Models\TransaksiKeluar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Laraindo\RupiahFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use Pdf;
@@ -29,7 +33,9 @@ class MenuLaporanController extends Controller
                 '11' => 'November',
                 '12' => 'Desember',
             ];
-            $data = TransaksiDetail::selectRaw("MONTH(DibayarPada) as BulanNum, SUM(TotalPembayaran) as TotalOmset")
+
+            // Ambil omset per bulan
+            $dataOmset = TransaksiDetail::selectRaw("MONTH(DibayarPada) as BulanNum, SUM(TotalPembayaran) as TotalOmset")
                 ->where('Status', 'Lunas')
                 ->whereYear('DibayarPada', $year)
                 ->groupBy('BulanNum')
@@ -38,14 +44,28 @@ class MenuLaporanController extends Controller
                 ->keyBy(function ($item) {
                     return str_pad($item->BulanNum, 2, '0', STR_PAD_LEFT);
                 });
+
+
+            $dataKeluar = TransaksiKeluar::selectRaw("MONTH(Tanggal) as BulanNum, SUM(Total) as TotalKeluar")
+                ->whereYear('Tanggal', $year)
+                ->groupBy('BulanNum')
+                ->orderBy('BulanNum', 'asc')
+                ->get()
+                ->keyBy(function ($item) {
+                    return str_pad($item->BulanNum, 2, '0', STR_PAD_LEFT);
+                });
+
             $result = [];
             foreach ($months as $num => $namaBulan) {
-                $totalOmset = isset($data[$num]) ? $data[$num]->TotalOmset : 0;
+                $totalOmset = isset($dataOmset[$num]) ? $dataOmset[$num]->TotalOmset : 0;
+                $totalKeluar = isset($dataKeluar[$num]) ? $dataKeluar[$num]->TotalKeluar : 0;
                 $result[] = (object) [
                     'Bulan' => $year . '-' . $num,
                     'TotalOmset' => $totalOmset,
+                    'TotalKeluar' => $totalKeluar,
                 ];
             }
+
             return DataTables::of(collect($result))
                 ->addIndexColumn()
                 ->addColumn('Bulan', function ($row) use ($months) {
@@ -56,7 +76,10 @@ class MenuLaporanController extends Controller
                 ->addColumn('TotalOmset', function ($row) {
                     return 'Rp ' . number_format($row->TotalOmset, 0, ',', '.');
                 })
-                ->rawColumns(['Bulan', 'TotalOmset'])
+                ->addColumn('TotalKeluar', function ($row) {
+                    return 'Rp ' . number_format($row->TotalKeluar, 0, ',', '.');
+                })
+                ->rawColumns(['Bulan', 'TotalOmset', 'TotalKeluar'])
                 ->make(true);
         }
         return view('laporan.omset.index');
@@ -127,5 +150,51 @@ class MenuLaporanController extends Controller
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }
+    }
+    public function Penjualan(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Transaksi::with('getTransaksi', 'getCustomer', 'getProduk')->latest();
+
+            if ($request->filled('produk')) {
+                $data = $data->where('IdProduk', $request->produk);
+            }
+            if ($request->filled('tahun')) {
+                $data = $data->whereYear('TanggalTransaksi', $request->tahun);
+            }
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('IdPelanggan', function ($row) {
+                    return $row->getCustomer ? $row->getCustomer->name : '-';
+                })
+                ->editColumn('IdProduk', function ($row) {
+                    return $row->getProduk ? $row->getProduk->Nama : '-';
+                })
+                ->editColumn('DurasiPembayaran', function ($row) {
+                    return $row->getProduk ? $row->getProduk->Nama : '-';
+                })
+                ->editColumn('TotalHarga', function ($row) {
+                    return RupiahFormat::currency($row->TotalHarga);
+                })
+                ->editColumn('SisaBayar', function ($row) {
+                    return RupiahFormat::currency($row->SisaBayar);
+                })
+
+                ->addColumn('StatusPembayaran', function ($row) {
+                    $status = $row->StatusPembayaran;
+                    if ($status === 'Lunas') {
+                        return '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Lunas</span>';
+                    } elseif ($status === 'BelumLunas' || $status === 'Belum Lunas (Angsuran)') {
+                        return '<span class="badge bg-warning text-dark"><i class="fas fa-hourglass-half me-1"></i>Belum Lunas</span>';
+                    } else {
+                        return '-';
+                    }
+                })
+                ->rawColumns(['StatusPembayaran'])
+                ->make(true);
+        }
+        $MasterProduk = Produk::get();
+        return view('laporan.penjualan.index', compact('MasterProduk'));
     }
 }

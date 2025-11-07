@@ -43,6 +43,10 @@ class Transaksi extends Model
     {
         return $this->hasOne(User::class, 'id', 'IdPelanggan');
     }
+    public function getCustomer()
+    {
+        return $this->hasOne(User::class, 'id', 'IdPelanggan');
+    }
 
     public function getProduk()
     {
