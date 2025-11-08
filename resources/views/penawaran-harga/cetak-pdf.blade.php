@@ -76,7 +76,7 @@
 
 <body>
     <div class="watermark">
-        <img src="{{ asset('storage/background_sertifikat/') }}" alt="" width="100%" height="100%">
+        <img src="{{ public_path('assets/img/bgsurat/surat.png') }}" alt="" width="100%" height="100%">
     </div>
     <div style="margin-top: 0.3cm; margin-bottom: 0.3cm; align-content:center;">
         <center>

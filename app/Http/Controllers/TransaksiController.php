@@ -231,6 +231,9 @@ class TransaksiController extends Controller
         if ($transaksi) {
             $totalSisa = $transaksi->getTransaksi()->where('Status', '!=', 'Lunas')->sum('BesarCicilan');
             $transaksi->SisaBayar = $totalSisa;
+            if ($totalSisa == 0) {
+                $transaksi->Status = 'Lunas';
+            }
             $transaksi->save();
         }
 

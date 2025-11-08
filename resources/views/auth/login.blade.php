@@ -4,12 +4,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <meta name="description" content="POS - Bootstrap Admin Template">
-    <meta name="keywords"
-        content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
-    <meta name="author" content="Dreamguys - Bootstrap Admin Template">
+    <meta name="description" content="Sistem E-Office - Login Page">
+    <meta name="keywords" content="e-office, sistem, administratif, digital, dokumen, surat, arsip, layanan, responsive">
+    <meta name="author" content="Sistem E-Office">
     <meta name="robots" content="noindex, nofollow">
-    <title>Login - Lumina Kasir</title>
+    <title>Login - Sistem E-Office</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('') }}assets/img/favicon.png">
@@ -41,12 +40,12 @@
                         @csrf
                         <div class="login-userset">
                             <div class="login-logo logo-normal">
-                                <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="img">
+                                <img src="{{ asset('assets/img/logo/logo-tanah-emas.png') }}" alt="img">
                             </div>
 
                             <div class="login-userheading">
                                 <h3>Masuk</h3>
-                                <h4>Akses aplikasi Lumina Kasir menggunakan email dan kata sandi Anda.</h4>
+                                <h4>Akses aplikasi E-office menggunakan email dan kata sandi Anda.</h4>
                             </div>
                             @if ($errors->any())
                                 <div class="alert alert-danger">

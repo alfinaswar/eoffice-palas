@@ -46,13 +46,13 @@
             <!-- Logo -->
             <div class="header-left active">
                 <a href="{{ route('home') }}" class="logo logo-normal">
-                    <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
+                    <img src="{{ asset('assets/img/logo/e-office-long.png') }}" alt="">
                 </a>
                 <a href="{{ route('home') }}" class="logo logo-white">
-                    <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
+                    <img src="{{ asset('assets/img/logo/e-office-long.png') }}" alt="">
                 </a>
                 <a href="{{ route('home') }}" class="logo-small">
-                    <img src="{{ asset('assets/img/logo/lumina.png') }}" alt="">
+                    <img src="{{ asset('assets/img/logo/e-office-long.png') }}" alt="">
                 </a>
                 <a id="toggle_btn" href="javascript:void(0);">
                     <i data-feather="chevrons-left" class="feather-16"></i>
