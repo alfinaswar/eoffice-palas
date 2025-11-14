@@ -49,7 +49,7 @@ class MasterCustomer extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
-            'nik' => 'nullable|string|max:50',
+            'nik' => 'nullable|string|max:50|unique:users,nik',
             'name' => 'required|string|max:200',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',

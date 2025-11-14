@@ -25,7 +25,7 @@ class TransaksiDetail extends Model
 
     public function transaksi()
     {
-        return $this->hasOne(Transaksi::class, 'IdTransaksi', 'id');
+        return $this->hasOne(Transaksi::class, 'id', 'IdTransaksi');
     }
 
     public function getCustomer()

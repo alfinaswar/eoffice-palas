@@ -55,7 +55,12 @@
                             </button>
                         </div>
                         <div class="col text-end align-self-end">
-                            {{-- Tambahan aksi jika perlu, misal export/excel --}}
+                            <div class="col text-end">
+                                <button class="btn btn-success" id="btnShowExportModal"
+                                    onclick="$('#modalExportOmset').modal('show')">
+                                    <i class="fa fa-file-excel"></i> Cetak Laporan
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -81,6 +86,7 @@
             </div>
         </div>
     </div>
+    @include('laporan.penjualan.modal-cetak')
 @endsection
 
 @push('js')

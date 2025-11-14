@@ -220,7 +220,7 @@ class TransaksiController extends Controller
 
         $id_transaksi_detail = decrypt($request->input('IdTransaksiDetail'));
         $transaksiDetail = TransaksiDetail::with('transaksi')->findOrFail($id_transaksi_detail);
-
+        // dd($transaksiDetail);
         $transaksiDetail->KodeBayar = $this->generateKodeBayar();
         $transaksiDetail->Status = 'Lunas';
         $transaksiDetail->DibayarPada = now();

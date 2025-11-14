@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\OmsetExport;
+use App\Models\MasterProjek;
 use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
@@ -13,6 +14,7 @@ use Laraindo\RupiahFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use Pdf;
+
 class MenuLaporanController extends Controller
 {
     public function Omset(Request $request)
@@ -35,7 +37,7 @@ class MenuLaporanController extends Controller
             ];
 
             // Ambil omset per bulan
-            $dataOmset = TransaksiDetail::selectRaw("MONTH(DibayarPada) as BulanNum, SUM(TotalPembayaran) as TotalOmset")
+            $dataOmset = TransaksiDetail::selectRaw('MONTH(DibayarPada) as BulanNum, SUM(TotalPembayaran) as TotalOmset')
                 ->where('Status', 'Lunas')
                 ->whereYear('DibayarPada', $year)
                 ->groupBy('BulanNum')
@@ -45,8 +47,7 @@ class MenuLaporanController extends Controller
                     return str_pad($item->BulanNum, 2, '0', STR_PAD_LEFT);
                 });
 
-
-            $dataKeluar = TransaksiKeluar::selectRaw("MONTH(Tanggal) as BulanNum, SUM(Total) as TotalKeluar")
+            $dataKeluar = TransaksiKeluar::selectRaw('MONTH(Tanggal) as BulanNum, SUM(Total) as TotalKeluar')
                 ->whereYear('Tanggal', $year)
                 ->groupBy('BulanNum')
                 ->orderBy('BulanNum', 'asc')
@@ -84,11 +85,12 @@ class MenuLaporanController extends Controller
         }
         return view('laporan.omset.index');
     }
+
     public function DownloadOmset(Request $request)
     {
         $tahunDari = $request->input('tahun_dari', date('Y'));
         $tahunSampai = $request->input('tahun_sampai', $tahunDari);
-        $format = $request->input('format', 'excel'); // default excel jika tidak ada
+        $format = $request->input('format', 'excel');  // default excel jika tidak ada
 
         $tahunDari = intval($tahunDari);
         $tahunSampai = intval($tahunSampai);
@@ -139,7 +141,6 @@ class MenuLaporanController extends Controller
         if ($format == 'excel') {
             $fileName = "Laporan_Omset_{$tahunDari}_{$tahunSampai}.xlsx";
             return Excel::download(new OmsetExport($rows, $tahunDari, $tahunSampai), $fileName);
-
         } elseif ($format == 'pdf') {
             $pdf = Pdf::loadView('laporan.omset.export', [
                 'data' => $rows,
@@ -151,6 +152,7 @@ class MenuLaporanController extends Controller
             return back()->with('error', 'Format export tidak dikenali.');
         }
     }
+
     public function Penjualan(Request $request)
     {
         if ($request->ajax()) {
@@ -180,7 +182,6 @@ class MenuLaporanController extends Controller
                 ->editColumn('SisaBayar', function ($row) {
                     return RupiahFormat::currency($row->SisaBayar);
                 })
-
                 ->addColumn('StatusPembayaran', function ($row) {
                     $status = $row->StatusPembayaran;
                     if ($status === 'Lunas') {
@@ -195,6 +196,32 @@ class MenuLaporanController extends Controller
                 ->make(true);
         }
         $MasterProduk = Produk::get();
-        return view('laporan.penjualan.index', compact('MasterProduk'));
+        $Proyek = MasterProjek::get();
+        return view('laporan.penjualan.index', compact('MasterProduk', 'Proyek'));
+    }
+
+    public function DownloadPenjualan(Request $request)
+    {
+        $proyekNama = $request->input('Proyek');
+        $format = $request->input('format', 'excel');
+
+        $data = Transaksi::whereHas('getProduk.getProyek', function ($query) use ($proyekNama) {
+            $query->where('id', $proyekNama);
+        })->with(['getProduk.getProyek'])->get();
+        // dd($data);
+
+        if ($format == 'excel') {
+            $fileName = "Laporan_Omset_{$tahunDari}_{$tahunSampai}.xlsx";
+            return Excel::download(new OmsetExport($rows, $tahunDari, $tahunSampai), $fileName);
+        } elseif ($format == 'pdf') {
+            $pdf = Pdf::loadView('laporan.omset.export', [
+                'data' => $rows,
+                'tahun_dari' => $tahunDari,
+                'tahun_sampai' => $tahunSampai
+            ])->setPaper('a4', 'landscape');
+            return $pdf->stream("Laporan_Omset_{$tahunDari}_{$tahunSampai}.pdf");
+        } else {
+            return back()->with('error', 'Format export tidak dikenali.');
+        }
     }
 }
