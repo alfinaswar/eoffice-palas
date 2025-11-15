@@ -214,12 +214,10 @@ class MenuLaporanController extends Controller
             $fileName = "Laporan_Omset_{$tahunDari}_{$tahunSampai}.xlsx";
             return Excel::download(new OmsetExport($rows, $tahunDari, $tahunSampai), $fileName);
         } elseif ($format == 'pdf') {
-            $pdf = Pdf::loadView('laporan.omset.export', [
-                'data' => $rows,
-                'tahun_dari' => $tahunDari,
-                'tahun_sampai' => $tahunSampai
+            $pdf = Pdf::loadView('laporan.penjualan.export', [
+                'data' => $data,
             ])->setPaper('a4', 'landscape');
-            return $pdf->stream("Laporan_Omset_{$tahunDari}_{$tahunSampai}.pdf");
+            return $pdf->stream("Laporan Penjualan.pdf");
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }
