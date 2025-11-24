@@ -55,7 +55,7 @@ class PenawaranHargaController extends Controller
      */
     public function create()
     {
-        $produk = Produk::get();
+        $produk = Produk::whereDoesntHave('getDataBooking')->get();
         $customer = User::where('jenis_user', 'Customer')->get();
         return view('penawaran-harga.create', compact('produk', 'customer'));
     }

@@ -14,8 +14,10 @@ class ProdukController extends Controller
 {
     public function index(Request $request)
     {
+
+        // dd($data);
         if ($request->ajax()) {
-            $data = Produk::with('getGrade', 'getJenis', 'getProyek')->latest();
+            $data = Produk::with('getGrade', 'getJenis', 'getProyek', 'getDataBooking')->latest();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) {
@@ -46,7 +48,20 @@ class ProdukController extends Controller
                 ->editColumn('HargaNormal', function ($row) {
                     return RupiahFormat::currency($row->HargaNormal);
                 })
-                ->rawColumns(['action'])
+                ->addColumn('Status', function ($row) {
+                    if ($row->getDataBooking) {
+                        $namaBooking = '-';
+                        if (isset($row->getDataBooking->getCustomer) && $row->getDataBooking->getCustomer) {
+                            $namaBooking = $row->getDataBooking->getCustomer->name;
+                        } elseif (isset($row->getDataBooking->Nama)) {
+                            $namaBooking = $row->getDataBooking->Nama;
+                        }
+                        return '<span class="badge bg-danger">Sudah Dibooking</span> <br><small>Customer: ' . $namaBooking . '</small>';
+                    } else {
+                        return '<span class="badge bg-success">Tersedia</span>';
+                    }
+                })
+                ->rawColumns(['action', 'Status'])
                 ->make(true);
         }
         return view('produk.index');

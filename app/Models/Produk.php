@@ -24,4 +24,8 @@ class Produk extends Model
     {
         return $this->belongsTo(MasterProjek::class, 'Proyek', 'id');
     }
+    public function getDataBooking()
+    {
+        return $this->hasOne(BookingList::class, 'IdProduk', 'id');
+    }
 }
