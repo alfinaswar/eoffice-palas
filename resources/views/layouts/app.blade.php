@@ -158,6 +158,13 @@
                                     <span>Penawaran Harga</span>
                                 </a>
                             </li>
+
+
+                        </ul>
+                    </li>
+                    <li class="submenu-open">
+                        <h6 class="submenu-hdr">Transaksi Kasir</h6>
+                        <ul>
                             <li>
                                 <a href="{{ route('booking-list.index') }}">
                                     <i data-feather="calendar"></i>
@@ -170,12 +177,6 @@
                                     <span>Pembayaran</span>
                                 </a>
                             </li>
-                        </ul>
-                    </li>
-                    <li class="submenu-open">
-                        <h6 class="submenu-hdr">Kas</h6>
-                        <ul>
-
                             <li>
                                 <a href="{{ route('transaksi-keluar.index') }}">
                                     <i data-feather="arrow-up-circle"></i>
