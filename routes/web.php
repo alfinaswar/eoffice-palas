@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingListController;
 use App\Http\Controllers\DependentDropdownController;
+use App\Http\Controllers\DownPaymentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MasterAngsuranController;
 use App\Http\Controllers\MasterBankController;
@@ -152,7 +153,16 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
     });
-
+    Route::prefix('down-payment')->group(function () {
+        Route::get('/', [DownPaymentController::class, 'index'])->name('dp.index');
+        Route::get('/create/{id}', [DownPaymentController::class, 'create'])->name('dp.create');
+        Route::post('/store', [DownPaymentController::class, 'store'])->name('dp.store');
+        Route::get('/edit/{id}', [DownPaymentController::class, 'edit'])->name('dp.edit');
+        Route::get('/cetak-bukti-pembayaran/{id}', [DownPaymentController::class, 'PrintKwitansi'])->name('dp.print');
+        Route::put('/update/{id}', [DownPaymentController::class, 'update'])->name('dp.update');
+        Route::get('/show/{id}', [DownPaymentController::class, 'show'])->name('dp.show');
+        Route::delete('/delete/{id}', [DownPaymentController::class, 'destroy'])->name('dp.destroy');
+    });
     Route::prefix('transaksi/masuk')->group(function () {
         Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
         Route::get('/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');

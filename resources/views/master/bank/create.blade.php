@@ -30,8 +30,9 @@
 
                             <div class="col-md-6">
                                 <label for="Nama" class="form-label"><strong>Nama</strong></label>
-                                <input type="text" name="Nama" class="form-control @error('Nama') is-invalid @enderror"
-                                    id="Nama" placeholder="Nama" value="{{ old('Nama') }}">
+                                <input type="text" name="Nama"
+                                    class="form-control @error('Nama') is-invalid @enderror" id="Nama"
+                                    placeholder="Nama" value="{{ old('Nama') }}">
                                 @error('Nama')
                                     <div class="text-danger mt-1">
                                         {{ $message }}
@@ -40,9 +41,21 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="Kode" class="form-label"><strong>Kode</strong></label>
-                                <input type="text" name="Kode" class="form-control @error('Kode') is-invalid @enderror"
-                                    id="Kode" placeholder="Kode" value="{{ old('Kode') }}">
+                                <input type="text" name="Kode"
+                                    class="form-control @error('Kode') is-invalid @enderror" id="Kode"
+                                    placeholder="Kode" value="{{ old('Kode') }}">
                                 @error('Kode')
+                                    <div class="text-danger mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Rekening" class="form-label"><strong>Nomor Rekening</strong></label>
+                                <input type="text" name="Rekening"
+                                    class="form-control @error('Rekening') is-invalid @enderror" id="Rekening"
+                                    placeholder="Nomor Rekening" value="{{ old('Rekening') }}">
+                                @error('Rekening')
                                     <div class="text-danger mt-1">
                                         {{ $message }}
                                     </div>

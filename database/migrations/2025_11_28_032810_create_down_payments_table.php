@@ -10,21 +10,22 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('Transaksi', function (Blueprint $table) {
+        Schema::create('down_payments', function (Blueprint $table) {
             $table->id();
-            $table->string('KodeTransaksi', 50)->unique();
-            $table->string('IdPenawaran')->nullable();
+            $table->string('IdTransaksi')->nullable();
             $table->string('IdBooking')->nullable();
+            $table->string('Nomor', 50)->unique();
             $table->string('IdProduk')->nullable();
-            $table->date('TanggalTransaksi')->nullable();
-            $table->string('IdPelanggan')->nullable();
-            $table->string('IdPetugas')->nullable();
-            $table->enum('JenisTransaksi', ['Cash', 'Cicilan', 'Kredit'])->nullable();
-            $table->string('TotalHarga')->default('0')->nullable();
-            $table->string('UangMuka')->default('0')->nullable();
-            $table->string('SisaBayar')->default('0')->nullable();
-            $table->enum('StatusPembayaran', ['Lunas', 'BelumLunas'])->default('BelumLunas');
+            $table->string('NamaPelanggan')->nullable();
+            $table->date('Tanggal')->nullable();
+            $table->string('Total')->nullable();
+            $table->string('SisaBayar')->nullable();
+            $table->string('JenisPembayaran')->nullable();
             $table->text('Keterangan')->nullable();
+            $table->string('Penerima')->nullable();
+            $table->dateTime('DiterimaPada')->nullable();
+            $table->string('Penyetor')->nullable();
+            $table->dateTime('DiserahkanPada')->nullable();
             $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
@@ -39,6 +40,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('transaksis');
+        Schema::dropIfExists('down_payments');
     }
 };

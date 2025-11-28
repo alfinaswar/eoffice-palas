@@ -106,6 +106,7 @@ class BookingListController extends Controller
             'NamaPelanggan' => $data['NamaPelangganPenawaran'],
             'Tanggal' => $data['Tanggal'],
             'Total' => preg_replace('/[^\d]/', '', $data['TotalSetoran']),
+            'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar']),
             'JenisPembayaran' => $data['JenisPembayaran'],
             'NamaBank' => $data['Bank'],
             'Keterangan' => $data['Keterangan'] ?? null,
@@ -113,6 +114,10 @@ class BookingListController extends Controller
             'DiterimaPada' => now(),
             'Penyetor' => $data['Penyetor'],
         ]);
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Menambah booking list baru dengan nomor: ' . $nomorBooking . ', atas nama: ' . $data['NamaPelangganPenawaran']);
 
         return redirect()
             ->route('booking-list.index')
@@ -154,8 +159,9 @@ class BookingListController extends Controller
     public function edit($id)
     {
         $id = decrypt($id);
-        $bookingList = BookingList::with('getPenawaran')->findOrFail($id);
-        return view('booking-list.edit', compact('bookingList'));
+        $bank = MasterBank::get();
+        $bookingList = BookingList::with('getPenawaran', 'getKaryawan')->findOrFail($id);
+        return view('booking-list.edit', compact('bookingList', 'bank'));
     }
 
     public function PrintKwitansi($id)
@@ -193,9 +199,43 @@ class BookingListController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, BookingList $bookingList)
+    public function update(Request $request, $id)
     {
-        //
+        $data = $request->all();
+
+        $validatedData = $request->validate([
+            'NamaPelangganPenawaran' => 'required',
+            'Tanggal' => 'required',
+            'TotalSetoran' => 'required',
+            'JenisPembayaran' => 'required',
+            'Keterangan' => 'nullable',
+            'Penyetor' => 'required',
+        ]);
+
+        $id = decrypt($id);
+        $bookingList = BookingList::findOrFail($id);
+
+        $bookingList->update([
+            'NamaPelanggan' => $data['NamaPelangganPenawaran'],
+            'Tanggal' => $data['Tanggal'],
+            'Total' => preg_replace('/[^\d]/', '', $data['TotalSetoran']),
+            'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar']),
+            'JenisPembayaran' => $data['JenisPembayaran'],
+            'NamaBank' => $data['Bank'] ?? null,
+            'Keterangan' => $data['Keterangan'] ?? null,
+            'Penerima' => auth()->user()->id,
+            'DiterimaPada' => now(),
+            'Penyetor' => $data['Penyetor'],
+        ]);
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Mengedit booking list nomor: ' . $bookingList->Nomor . ', atas nama: ' . $data['NamaPelangganPenawaran']);
+
+        return redirect()
+            ->route('booking-list.index')
+            ->with('success', 'Booking List berhasil diupdate.');
     }
 
     /**

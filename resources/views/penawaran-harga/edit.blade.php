@@ -22,7 +22,7 @@
                     <small class="card-text mb-0">Ubah data penawaran dan produk yang ditawarkan.</small>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('penawaran-harga.update', encrypt($penawaran->id)) }}" method="POST">
+                    <form action="{{ route('penawaran-harga.update', $penawaran->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="row g-3 mb-3">
@@ -42,13 +42,16 @@
                                     class="form-select select2 @error('NamaPelanggan') is-invalid @enderror"
                                     data-placeholder="Pilih Pelanggan">
                                     <option value="">Pilih Pelanggan</option>
-                                    @foreach($customer as $cust)
-                                        <option value="{{ $cust->id }}" {{ old('NamaPelanggan', $penawaran->NamaPelanggan) == $cust->id ? 'selected' : '' }}>
+                                    @foreach ($customer as $cust)
+                                        <option value="{{ $cust->id }}"
+                                            {{ old('NamaPelanggan', $penawaran->NamaPelanggan) == $cust->id ? 'selected' : '' }}>
                                             {{ $cust->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('NamaPelanggan')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                                @error('NamaPelanggan')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-12">
@@ -62,7 +65,6 @@
                         </div>
 
                         <hr class="mb-4">
-
                         <h5 class="mb-3 fw-bold">Detail Produk</h5>
                         <div class="table-responsive mb-2">
                             <table class="table table-sm table-hover align-middle border rounded-1" id="table-produk">
@@ -78,111 +80,117 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (old('IdProduk'))
-                                        @foreach (old('IdProduk') as $i => $idProduk)
-                                            <tr>
-                                                <td>
-                                                    <select name="IdProduk[]" class="form-select produk-select" required>
-                                                        <option value="">Pilih Produk</option>
-                                                        @foreach ($produk as $p)
-                                                            <option value="{{ $p->id }}"
-                                                                data-harga="{{ $p->HargaNormal }}"
-                                                                {{ $idProduk == $p->id ? 'selected' : '' }}>
-                                                                {{ $p->Nama }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="HargaAsli[]"
-                                                        class="form-control harga-asli-input text-end"
-                                                        value="{{ old('HargaAsli')[$i] ?? '0' }}" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="Harga[]"
-                                                        class="form-control harga-input text-end"
-                                                        value="{{ old('Harga')[$i] ?? '0' }}" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="Diskon[]"
-                                                        class="form-control diskon-input text-end"
-                                                        value="{{ old('Diskon')[$i] ?? '0' }}" min="0">
-                                                </td>
-                                                <td>
-                                                    <select name="JenisDiskon[]" class="form-select jenis-diskon-input">
-                                                        <option value="Rp"
-                                                            {{ (old('JenisDiskon')[$i] ?? '') == 'Rp' ? 'selected' : '' }}>
-                                                            Rp</option>
-                                                        <option value="Persen"
-                                                            {{ (old('JenisDiskon')[$i] ?? '') == 'Persen' ? 'selected' : '' }}>
-                                                            %</option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="Subtotal[]"
-                                                        class="form-control total-input text-end"
-                                                        value="{{ old('Subtotal')[$i] ?? '0' }}" readonly>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-link text-danger p-0 btn-remove"
-                                                        title="Hapus Baris">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @else
-                                        @foreach ($penawaran->DetailPenawaran as $d)
-                                            <tr>
-                                                <td>
-                                                    <select name="IdProduk[]" class="form-select produk-select" required>
-                                                        <option value="">Pilih Produk</option>
-                                                        @foreach ($produk as $p)
-                                                            <option value="{{ $p->id }}"
-                                                                data-harga="{{ $p->HargaNormal }}"
-                                                                {{ $d->IdProduk == $p->id ? 'selected' : '' }}>
-                                                                {{ $p->Nama }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="HargaAsli[]"
-                                                        class="form-control harga-asli-input text-end"
-                                                        value="{{ number_format($d->Harga, 0, ',', '.') }}" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="Harga[]"
-                                                        class="form-control harga-input text-end"
-                                                        value="{{ number_format($d->Harga, 0, ',', '.') }}" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="Diskon[]"
-                                                        class="form-control diskon-input text-end"
-                                                        value="{{ $d->Diskon }}" min="0">
-                                                </td>
-                                                <td>
-                                                    <select name="JenisDiskon[]" class="form-select jenis-diskon-input">
-                                                        <option value="Rp"
-                                                            {{ $d->JenisDiskon == 'Rp' ? 'selected' : '' }}>Rp</option>
-                                                        <option value="Persen"
-                                                            {{ $d->JenisDiskon == 'Persen' ? 'selected' : '' }}>%</option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="Subtotal[]"
-                                                        class="form-control total-input text-end"
-                                                        value="{{ number_format($d->subtotal, 0, ',', '.') }}" readonly>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-link text-danger p-0 btn-remove"
-                                                        title="Hapus Baris">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
+                                    @forelse (old('IdProduk', $penawaran->details->pluck('IdProduk')->toArray()) as $i => $idProduk)
+                                        @php
+                                            $produkSelected = $produk->firstWhere(
+                                                'id',
+                                                old('IdProduk.' . $i, $penawaran->details[$i]->IdProduk ?? null),
+                                            );
+                                            $hargaAsli = $produkSelected?->HargaNormal ?? 0;
+                                            $hargaTawaran = old('Harga.' . $i, $penawaran->details[$i]->Harga ?? 0);
+                                            $diskon = old('Diskon.' . $i, $penawaran->details[$i]->Diskon ?? 0);
+                                            $jenisDiskon = old(
+                                                'JenisDiskon.' . $i,
+                                                $penawaran->details[$i]->JenisDiskon ?? 'Rp',
+                                            );
+                                            $subtotal = old('Subtotal.' . $i, $penawaran->details[$i]->Subtotal ?? 0);
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <select name="IdProduk[]" class="form-select produk-select" required>
+                                                    <option value="">Pilih Produk</option>
+                                                    @foreach ($produk as $p)
+                                                        <option value="{{ $p->id }}"
+                                                            data-harga="{{ $p->HargaNormal }}"
+                                                            {{ $idProduk == $p->id ? 'selected' : '' }}>
+                                                            {{ $p->Nama }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="HargaAsli[]"
+                                                    class="form-control harga-asli-input text-end"
+                                                    value="{{ number_format($hargaAsli, 0, ',', '.') }}" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Harga[]"
+                                                    class="form-control harga-input text-end"
+                                                    value="{{ number_format($hargaTawaran, 0, ',', '.') }}" required
+                                                    autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Diskon[]"
+                                                    class="form-control diskon-input text-end"
+                                                    value="{{ number_format($diskon, 0, ',', '.') }}" min="0"
+                                                    autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <select name="JenisDiskon[]" class="form-select jenis-diskon-input">
+                                                    <option value="Rp" {{ $jenisDiskon == 'Rp' ? 'selected' : '' }}>Rp
+                                                    </option>
+                                                    <option value="Persen"
+                                                        {{ $jenisDiskon == 'Persen' ? 'selected' : '' }}>%</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Subtotal[]"
+                                                    class="form-control total-input text-end"
+                                                    value="{{ number_format($subtotal, 0, ',', '.') }}" readonly>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-link text-danger p-0 btn-remove"
+                                                    title="Hapus Baris">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td>
+                                                <select name="IdProduk[]" class="form-select produk-select" required>
+                                                    <option value="">Pilih Produk</option>
+                                                    @foreach ($produk as $p)
+                                                        <option value="{{ $p->id }}"
+                                                            data-harga="{{ $p->HargaNormal }}">
+                                                            {{ $p->Nama }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="HargaAsli[]"
+                                                    class="form-control harga-asli-input text-end" value="0"
+                                                    readonly>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Harga[]"
+                                                    class="form-control harga-input text-end" value="0" required
+                                                    autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Diskon[]"
+                                                    class="form-control diskon-input text-end" value="0"
+                                                    min="0" autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <select name="JenisDiskon[]" class="form-select jenis-diskon-input">
+                                                    <option value="Rp">Rp</option>
+                                                    <option value="Persen">%</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Subtotal[]"
+                                                    class="form-control total-input text-end" value="0" readonly>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-link text-danger p-0 btn-remove"
+                                                    title="Hapus Baris">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -198,7 +206,7 @@
                                 <label for="Total" class="form-label fw-semibold">Total Penawaran</label>
                                 <input type="text" name="Total" id="Total"
                                     class="form-control text-end fw-bold"
-                                    value="{{ old('Total', number_format($penawaran->Total, 0, ',', '.')) }}" readonly>
+                                    value="{{ number_format(old('Total', $penawaran->Total), 0, ',', '.') }}" readonly>
                             </div>
                         </div>
 
@@ -207,7 +215,7 @@
                                 <i class="fa fa-arrow-left"></i> Kembali
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-save"></i> Simpan Perubahan Penawaran
+                                <i class="fa fa-save"></i> Update Penawaran
                             </button>
                         </div>
                     </form>
@@ -232,11 +240,17 @@
             return rupiah;
         }
 
+        function unformatRupiah(str) {
+            if (!str) return 0;
+            let unformat = (str + '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(unformat);
+        }
+
         function hitungTotalBaris(row) {
             // Harga asli diambil dari kolom harga-asli-input, yang readonly dan berisi harga produk asli
-            let jumlah = 1;
-            let harga = parseFloat(row.querySelector('.harga-input').value.replace(/\./g, '')) || 0;
-            let diskon = parseFloat(row.querySelector('.diskon-input').value) || 0;
+            let jumlah = 1; // HargaAsli kolom bukan jumlah qty, jadi 1 (readonly harga asli)
+            let harga = unformatRupiah(row.querySelector('.harga-input').value) || 0;
+            let diskon = unformatRupiah(row.querySelector('.diskon-input').value) || 0;
             let jenisDiskon = row.querySelector('.jenis-diskon-input').value;
 
             let hargaSetelahDiskon = harga;
@@ -315,18 +329,35 @@
             }
         });
 
-        // Event: Saat harga/diskon/jenis diskon berubah, hitung total baris & summary
+        // Event: Otomatis pakai titik pada harga yang ditawarkan & diskon saat diketik
         document.addEventListener('input', function(e) {
-            if (
-                e.target.classList.contains('harga-input') ||
-                e.target.classList.contains('diskon-input')
-            ) {
+            if (e.target.classList.contains('harga-input') || e.target.classList.contains('diskon-input')) {
+                const caretPosition = e.target.selectionStart;
+                const oldLength = e.target.value.length;
+
+                // Remove all chars except number
+                let value = e.target.value.replace(/[^0-9]/g, '');
+
+                if (value.length === 0) {
+                    e.target.value = "";
+                } else {
+                    e.target.value = formatRupiah(value);
+                }
+
+                const newLength = e.target.value.length;
+                // Maintain caret position while typing
+                if (caretPosition !== null && caretPosition === oldLength) {
+                    e.target.setSelectionRange(newLength, newLength);
+                }
+
+                // setelah format, tetap hitung total & refresh
                 const tr = e.target.closest('tr');
                 hitungTotalBaris(tr);
                 refreshTotalPenawaran();
             }
         });
 
+        // Event: Saat harga/diskon/jenis diskon berubah, hitung total baris & summary
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('jenis-diskon-input')) {
                 const tr = e.target.closest('tr');
@@ -334,13 +365,6 @@
                 refreshTotalPenawaran();
             }
         });
-
-        // Harga format otomatis (rupiah) saat input harga
-        document.addEventListener('blur', function(e) {
-            if (e.target.classList.contains('harga-input')) {
-                e.target.value = formatRupiah(e.target.value.replace(/\./g, ''));
-            }
-        }, true);
 
         // Hitung total awal saat reload
         document.addEventListener('DOMContentLoaded', function() {
@@ -350,4 +374,19 @@
             refreshTotalPenawaran();
         });
     </script>
+@endsection
+if (e.target.classList.contains('harga-input')) {
+e.target.value = formatRupiah(e.target.value.replace(/\./g, ''));
+}
+}, true);
+*/
+
+// Hitung total awal saat reload
+document.addEventListener('DOMContentLoaded', function() {
+document.querySelectorAll('#table-produk tbody tr').forEach(function(row) {
+hitungTotalBaris(row);
+});
+refreshTotalPenawaran();
+});
+</script>
 @endsection

@@ -158,8 +158,6 @@
                                     <span>Penawaran Harga</span>
                                 </a>
                             </li>
-
-
                         </ul>
                     </li>
                     <li class="submenu-open">
@@ -169,6 +167,12 @@
                                 <a href="{{ route('booking-list.index') }}">
                                     <i data-feather="calendar"></i>
                                     <span>Booking List</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('dp.index') }}">
+                                    <i data-feather="credit-card"></i>
+                                    <span>Down Payment</span>
                                 </a>
                             </li>
                             <li>

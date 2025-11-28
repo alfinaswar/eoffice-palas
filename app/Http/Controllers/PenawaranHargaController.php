@@ -269,8 +269,24 @@ class PenawaranHargaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PenawaranHarga $penawaranHarga)
+    public function destroy($id)
     {
-        //
+        $id = decrypt($id);
+        $penawaran = PenawaranHarga::find($id);
+
+        if (!$penawaran) {
+            return response()->json(['status' => 404, 'message' => 'Data tidak ditemukan']);
+        }
+
+        PenawaranHargaDetail::where('IdPenawaran', $penawaran->id)->delete();
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Menghapus penawaran harga: ' . $penawaran->Nomor);
+
+        $penawaran->delete();
+
+        return response()->json(['status' => 200, 'message' => 'Penawaran harga berhasil dihapus']);
     }
 }

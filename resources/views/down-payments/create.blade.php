@@ -4,11 +4,11 @@
     <div class="page-header">
         <div class="row">
             <div class="col">
-                <h3 class="page-title">Booking List</h3>
+                <h3 class="page-title">Down Payment</h3>
                 <ul class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('booking-list.index') }}">Booking List</a></li>
-                    <li class="breadcrumb-item active">Tambah Booking</li>
+                    <li class="breadcrumb-item"><a href="{{ route('dp.index') }}">Down Payment</a></li>
+                    <li class="breadcrumb-item active">Tambah Down Payment</li>
                 </ul>
             </div>
         </div>
@@ -18,25 +18,42 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-header bg-dark">
-                    <h4 class="card-title mb-0">Formulir Booking List</h4>
+                    <h4 class="card-title mb-0">Formulir Down Payment</h4>
                     <p class="card-text mb-0">
-                        Silakan isi data booking baru di bawah ini.
+                        Silakan isi data down payment baru di bawah ini.
                     </p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('booking-list.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('dp.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="Nomor" class="form-label"><strong>Nomor Penawaran</strong></label>
+                                <label for="Nomor" class="form-label"><strong>Nomor Down Payment</strong></label>
                                 <input type="text" class="form-control" id="Nomor" placeholder="Nomor"
-                                    value="{{ $penawaran->Nomor }}" readonly>
+                                    value="{{ $booking->Nomor ?? '-' }}" readonly>
                             </div>
+                            <div class="col-md-6">
+                                <label for="NamaPelanggan" class="form-label"><strong>Nama Pelanggan</strong></label>
+                                <select name="NamaPelanggan" id="NamaPelanggan"
+                                    class="form-control select2 @error('NamaPelanggan') is-invalid @enderror">
+                                    <option value="">Pilih Nama Pelanggan</option>
+                                    @foreach ($customer ?? [] as $cust)
+                                        <option value="{{ $cust->id }}"
+                                            {{ old('NamaPelanggan', $booking->getCustomer->id ?? '') == $cust->id ? 'selected' : '' }}>
+                                            {{ $cust->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('NamaPelanggan')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <div class="col-md-6">
                                 <label for="Tanggal" class="form-label"><strong>Tanggal</strong></label>
                                 <input type="date" name="Tanggal"
                                     class="form-control @error('Tanggal') is-invalid @enderror" id="Tanggal"
-                                    value="{{ old('Tanggal') }}">
+                                    value="{{ old('Tanggal', date('Y-m-d')) }}">
                                 @error('Tanggal')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
@@ -74,7 +91,7 @@
 
                             <div class="col-md-6">
                                 <label for="Penerima" class="form-label"><strong>Penerima</strong></label>
-                                <input type="text" name="Penerima" class="form-control id=" Penerima"
+                                <input type="text" name="Penerima" class="form-control" id="Penerima"
                                     placeholder="Penerima" value="{{ auth()->user()->name }}" readonly>
                                 @error('Penerima')
                                     <div class="text-danger mt-1">{{ $message }}</div>
@@ -91,19 +108,17 @@
                                 @enderror
                             </div>
 
-                            <!-- Tambahkan Total Setoran -->
                             <div class="col-md-6">
-                                <label for="TotalSetoran" class="form-label"><strong>Total Setoran</strong></label>
+                                <label for="TotalSetoran" class="form-label"><strong>Nominal Down Payment</strong></label>
                                 <input type="text" name="TotalSetoran"
                                     class="form-control @error('TotalSetoran') is-invalid @enderror" id="TotalSetoran"
-                                    placeholder="Total Setoran" value="{{ old('TotalSetoran') }}" autocomplete="off"
+                                    placeholder="Nominal Down Payment" value="{{ old('TotalSetoran') }}" autocomplete="off"
                                     min="0">
                                 @error('TotalSetoran')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Sisa Bayar (otomatis) -->
                             <div class="col-md-6">
                                 <label for="SisaBayar" class="form-label"><strong>Sisa Bayar</strong></label>
                                 <input type="text" name="SisaBayar"
@@ -112,50 +127,58 @@
                                 @error('SisaBayar')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
+                                {{-- Tambahkan input hidden untuk nilai aslinya agar ikut ke controller --}}
+                                <input type="hidden" id="SisaBayarRaw" name="SisaBayarRaw" value="">
                             </div>
 
                             <div class="col-md-12 mt-4">
                                 <div class="row">
-                                    <div class="col-md-2">
-                                        <label for="NomorPenawaran" class="form-label"><strong>Nomor
-                                                Penawaran</strong></label>
-                                        <input type="text" class="form-control" id="NomorPenawaran"
-                                            name="NomorPenawaran" value="{{ $penawaran->Nomor ?? '-' }}" readonly>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="NomorBooking" class="form-label"><strong>Nomor
+                                                Booking</strong></label>
+                                        <input type="text" class="form-control" name="NomorBooking" id="NomorBooking"
+                                            value="{{ $booking->Nomor ?? '-' }}" readonly>
                                     </div>
-                                    <div class="col-md-2">
-                                        <label for="TanggalPenawaran" class="form-label"><strong>Tanggal</strong></label>
-                                        <input type="text" class="form-control" id="TanggalPenawaran"
-                                            name="TanggalPenawaran"
-                                            value="{{ $penawaran->Tanggal ? \Carbon\Carbon::parse($penawaran->Tanggal)->translatedFormat('d F Y') : '-' }}"
+                                    <div class="col-md-3 mb-2">
+                                        <label for="TanggalBooking" class="form-label"><strong>Tanggal</strong></label>
+                                        <input type="text" class="form-control" name="TanggalBooking"
+                                            id="TanggalBooking"
+                                            value="{{ $booking->Tanggal ? \Carbon\Carbon::parse($booking->Tanggal)->translatedFormat('d F Y') : '-' }}"
                                             readonly>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="NamaPelangganPenawaran" class="form-label"><strong>Nama
+                                    <div class="col-md-3 mb-2">
+                                        <label for="NamaPelangganBooking" class="form-label"><strong>Nama
                                                 Pelanggan</strong></label>
-                                        <input type="text" class="form-control" id="NamaPelangganPenawaranDisplay"
-                                            value="{{ optional($customer->where('id', old('NamaPelangganPenawaran', $penawaran->NamaPelanggan ?? null))->first())->name ?? '-' }}"
+                                        <input type="text" class="form-control" name="NamaPelangganBooking"
+                                            id="NamaPelangganBooking" value="{{ $booking->getCustomer->name ?? '-' }}"
                                             readonly>
-                                        <input type="hidden" name="NamaPelangganPenawaran"
-                                            value="{{ old('NamaPelangganPenawaran', $penawaran->NamaPelanggan ?? '') }}">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="NamaProdukPenawaran" class="form-label"><strong>Nama
+                                    <div class="col-md-3 mb-2">
+                                        <label for="NamaProdukBooking" class="form-label"><strong>Nama
                                                 Produk</strong></label>
-                                        <input type="text" class="form-control" id="NamaProdukPenawaran"
-                                            name="NamaProdukPenawaran"
-                                            value="{{ $penawaran->DetailPenawaran[0]->getProduk->Nama ?? '-' }}" readonly>
+                                        <input type="text" class="form-control" name="NamaProdukBooking"
+                                            id="NamaProdukBooking" value="{{ $booking->getProduk->Nama ?? '-' }}"
+                                            readonly>
                                     </div>
-                                    <div class="col-md-2">
-                                        <label for="TotalPenawaran" class="form-label"><strong>Harga</strong></label>
-                                        <input type="text" class="form-control" id="TotalPenawaran"
-                                            name="TotalPenawaran"
-                                            value="Rp {{ number_format($penawaran->Total ?? 0, 0, ',', '.') }}" readonly>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="TotalBooking" class="form-label"><strong>Total
+                                                Booking</strong></label>
+                                        <input type="text" class="form-control" name="TotalBooking" id="TotalBooking"
+                                            value="{{ 'Rp ' . number_format($booking->Total ?? 0, 0, ',', '.') }}"
+                                            readonly>
                                     </div>
-                                </div>
+                                    <div class="col-md-3 mb-2">
+                                        <label for="SisaBayarBooking" class="form-label"><strong>Sisa Bayar dari
+                                                Booking</strong></label>
+                                        <input type="text" class="form-control" name="SisaBayarBooking"
+                                            id="SisaBayarBooking"
+                                            value="{{ 'Rp ' . number_format($booking->SisaBayar ?? 0, 0, ',', '.') }}"
+                                            readonly>
+                                    </div>
 
-                                <div class="mt-2 mb-2">
-                                    <strong>Terbilang:</strong> {{ ucfirst(terbilang($penawaran->Total ?? 0)) }} rupiah
                                 </div>
+                                <input type="hidden" name="IdBooking" value="{{ $booking->id }}">
+                                <input type="hidden" name="IdProduk" value="{{ $booking->getProduk->id ?? '-' }}">
                             </div>
 
                         </div>
@@ -168,7 +191,7 @@
                             @enderror
                         </div>
                         <div class="col-12 text-end mt-3">
-                            <a href="{{ route('booking-list.index') }}" class="btn btn-secondary me-2">
+                            <a href="{{ route('dp.index') }}" class="btn btn-secondary me-2">
                                 <i class="fa fa-arrow-left"></i> Kembali
                             </a>
                             <button type="submit" class="btn btn-primary">
@@ -176,9 +199,8 @@
                             </button>
                         </div>
                 </div>
-                <input type="hidden" name="IdPenawaran" value="{{ $penawaran->id }}">
-                <input type="hidden" name="IdProduk"
-                    value="{{ $penawaran->DetailPenawaran[0]->getProduk->id ?? '-' }}">
+                <input type="hidden" name="IdBooking" value="{{ $booking->id }}">
+                <input type="hidden" name="IdProduk" value="{{ $booking->getProduk->id ?? '-' }}">
 
                 </form>
             </div>
@@ -206,8 +228,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalSetoranInput = document.getElementById('TotalSetoran');
-            const totalPenawaranInput = document.getElementById('TotalPenawaran');
+            // SisaBayarBooking dari booking, yaitu Sisa Bayar dari Booking
+            const sisaBayarBookingInput = document.getElementById('SisaBayarBooking');
             const sisaBayarInput = document.getElementById('SisaBayar');
+            const sisaBayarRawInput = document.getElementById('SisaBayarRaw');
 
             function formatRupiah(angka, prefix) {
                 let number_string = angka.replace(/[^,\d]/g, '').toString(),
@@ -232,21 +256,21 @@
 
             // Update otomatis Sisa Bayar jika TotalSetoran diubah
             function updateSisaBayar() {
-                const totalPenawaranValue = parseRupiah(totalPenawaranInput.value);
+                // Ambil Sisa Bayar dari Booking
+                const sisaBookingValue = parseRupiah(sisaBayarBookingInput.value);
+                // Ambil nilai DP (TotalSetoran)
                 const totalSetoranValue = parseRupiah(totalSetoranInput.value);
 
-                let sisa = totalPenawaranValue - totalSetoranValue;
+                let sisa = sisaBookingValue - totalSetoranValue;
                 if (sisa < 0) sisa = 0;
                 sisaBayarInput.value = formatRupiah(sisa.toString(), 'Rp');
+                sisaBayarRawInput.value = sisa;
             }
 
             totalSetoranInput.addEventListener('input', function(e) {
-                // To avoid cursor jump, store selection pos
-                let caret = this.selectionStart;
                 let value = this.value;
                 let newValue = formatRupiah(value, 'Rp');
                 this.value = newValue;
-                // Try to reposition caret if entering the middle
                 this.setSelectionRange(newValue.length, newValue.length);
 
                 updateSisaBayar();

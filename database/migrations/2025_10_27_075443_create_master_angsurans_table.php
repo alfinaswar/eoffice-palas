@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('KonversiTahun')->nullable();
             $table->string('Bunga')->nullable();
             $table->string('Keterangan')->nullable();
+            $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();

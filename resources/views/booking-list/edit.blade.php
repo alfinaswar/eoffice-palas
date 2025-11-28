@@ -24,21 +24,21 @@
                     </p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('booking-list.update', $bookingList->id) }}" method="POST"
+                    <form action="{{ route('booking-list.update', encrypt($bookingList->id)) }}" method="POST"
                         enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="Nomor" class="form-label"><strong>Nomor Booking</strong></label>
+                                <label for="Nomor" class="form-label"><strong>Nomor Penawaran</strong></label>
                                 <input type="text" class="form-control" id="Nomor" placeholder="Nomor"
-                                    value="{{ $bookingList->Nomor }}" readonly>
+                                    value="{{ $bookingList->getPenawaran->Nomor ?? '-' }}" readonly>
                             </div>
                             <div class="col-md-6">
                                 <label for="Tanggal" class="form-label"><strong>Tanggal</strong></label>
                                 <input type="date" name="Tanggal"
                                     class="form-control @error('Tanggal') is-invalid @enderror" id="Tanggal"
-                                    value="{{ old('Tanggal', $bookingList->Tanggal ? \Carbon\Carbon::parse($bookingList->Tanggal)->format('Y-m-d') : '') }}">
+                                    value="{{ old('Tanggal', $bookingList->Tanggal) }}">
                                 @error('Tanggal')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
@@ -69,7 +69,7 @@
                                     @foreach ($bank ?? [] as $b)
                                         <option value="{{ $b->id }}"
                                             {{ old('Bank', $bookingList->NamaBank) == $b->id ? 'selected' : '' }}>
-                                            {{ $b->Nama }}
+                                            {{ $b->Nama }} - {{ $b->Rekening }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -80,8 +80,8 @@
 
                             <div class="col-md-6">
                                 <label for="Penerima" class="form-label"><strong>Penerima</strong></label>
-                                <input type="text" name="Penerima" class="form-control id="Penerima"
-                                    placeholder="Penerima" value="{{ $bookingList->getPenerima->name ?? '-' }}" readonly>
+                                <input type="text" class="form-control id=" Penerima" placeholder="Penerima"
+                                    value="{{ old('Penerima', $bookingList->getKaryawan->name) }}" readonly>
                                 @error('Penerima')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
@@ -102,9 +102,21 @@
                                 <input type="text" name="TotalSetoran"
                                     class="form-control @error('TotalSetoran') is-invalid @enderror" id="TotalSetoran"
                                     placeholder="Total Setoran"
-                                    value="{{ old('TotalSetoran', 'Rp ' . number_format($bookingList->Total, 0, ',', '.')) }}"
+                                    value="{{ old('TotalSetoran', 'Rp ' . number_format($bookingList->Total ?? 0, 0, ',', '.')) }}"
                                     autocomplete="off" min="0">
                                 @error('TotalSetoran')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="SisaBayar" class="form-label"><strong>Sisa Bayar</strong></label>
+                                <input type="text" name="SisaBayar"
+                                    class="form-control @error('SisaBayar') is-invalid @enderror" id="SisaBayar"
+                                    placeholder="Sisa Bayar"
+                                    value="{{ old('SisaBayar', 'Rp ' . number_format($bookingList->SisaBayar ?? 0, 0, ',', '.')) }}"
+                                    autocomplete="off" readonly>
+                                @error('SisaBayar')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -114,22 +126,25 @@
                                     <div class="col-md-2">
                                         <label for="NomorPenawaran" class="form-label"><strong>Nomor
                                                 Penawaran</strong></label>
-                                        <input type="text" class="form-control" id="NomorPenawaran" name="NomorPenawaran"
-                                            value="{{ $bookingList->getPenawaran->Nomor ?? '-' }}" readonly>
+                                        <input type="text" class="form-control" id="NomorPenawaran"
+                                            name="NomorPenawaran" value="{{ $bookingList->getPenawaran->Nomor ?? '-' }}"
+                                            readonly>
                                     </div>
                                     <div class="col-md-2">
                                         <label for="TanggalPenawaran" class="form-label"><strong>Tanggal</strong></label>
                                         <input type="text" class="form-control" id="TanggalPenawaran"
                                             name="TanggalPenawaran"
-                                            value="{{ $bookingList->getPenawaran->Tanggal ? \Carbon\Carbon::parse($bookingList->getPenawaran->Tanggal)->translatedFormat('d F Y') : '-' }}"
+                                            value="{{ $bookingList->getPenawaran && $bookingList->getPenawaran->Tanggal ? \Carbon\Carbon::parse($bookingList->getPenawaran->Tanggal)->translatedFormat('d F Y') : '-' }}"
                                             readonly>
                                     </div>
                                     <div class="col-md-3">
                                         <label for="NamaPelangganPenawaran" class="form-label"><strong>Nama
                                                 Pelanggan</strong></label>
-                                        <input type="text" class="form-control" id="NamaPelangganPenawaran"
-                                            name="NamaPelangganPenawaran"
-                                            value="{{ $bookingList->getPenawaran->NamaPelanggan ?? '-' }}" readonly>
+                                        <input type="text" class="form-control" id="NamaPelangganPenawaranDisplay"
+                                            value="{{ optional($bookingList->getPenawaran->getCustomer ?? null)->name ?? '-' }}"
+                                            readonly>
+                                        <input type="hidden" name="NamaPelangganPenawaran"
+                                            value="{{ old('NamaPelangganPenawaran', $bookingList->getPenawaran->NamaPelanggan ?? '') }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label for="NamaProdukPenawaran" class="form-label"><strong>Nama
@@ -168,13 +183,13 @@
                                 <i class="fa fa-arrow-left"></i> Kembali
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-save"></i> Simpan Perubahan
+                                <i class="fa fa-save"></i> Simpan
                             </button>
                         </div>
                 </div>
-                <input type="hidden" name="IdPenawaran" value="{{ $bookingList->getPenawaran->id }}">
+                <input type="hidden" name="IdPenawaran" value="{{ $bookingList->IdPenawaran }}">
                 <input type="hidden" name="IdProduk"
-                    value="{{ $bookingList->getPenawaran->DetailPenawaran[0]->getProduk->id ?? '-' }}">
+                    value="{{ $bookingList->IdProduk ?? ($bookingList->getPenawaran->DetailPenawaran[0]->getProduk->id ?? '-') }}">
 
                 </form>
             </div>
@@ -202,6 +217,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalSetoranInput = document.getElementById('TotalSetoran');
+            const totalPenawaranInput = document.getElementById('TotalPenawaran');
+            const sisaBayarInput = document.getElementById('SisaBayar');
 
             function formatRupiah(angka, prefix) {
                 let number_string = angka.replace(/[^,\d]/g, '').toString(),
@@ -218,21 +235,34 @@
                 return prefix === undefined ? rupiah : (rupiah ? prefix + ' ' + rupiah : '');
             }
 
+            // Ambil nilai numeric dari string 'Rp xx.xxx'
+            function parseRupiah(str) {
+                if (!str) return 0;
+                return parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
+            }
+
+            function updateSisaBayar() {
+                const totalPenawaranValue = parseRupiah(totalPenawaranInput.value);
+                const totalSetoranValue = parseRupiah(totalSetoranInput.value);
+
+                let sisa = totalPenawaranValue - totalSetoranValue;
+                if (sisa < 0) sisa = 0;
+                sisaBayarInput.value = formatRupiah(sisa.toString(), 'Rp');
+            }
+
             totalSetoranInput.addEventListener('input', function(e) {
-                // To avoid cursor jump, store selection pos
-                let caret = this.selectionStart;
                 let value = this.value;
                 let newValue = formatRupiah(value, 'Rp');
                 this.value = newValue;
-                // Try to reposition caret if entering the middle
                 this.setSelectionRange(newValue.length, newValue.length);
+
+                updateSisaBayar();
             });
 
-            // On page load, format old value
             if (totalSetoranInput.value) {
-                totalSetoranInput.value = formatRupiah(totalSetoranInput.value, 'Rp');
+                totalSetoranInput.value = formatRupiah(parseRupiah(totalSetoranInput.value).toString(), 'Rp');
             }
+            updateSisaBayar();
         });
     </script>
-@endpush
 @endpush

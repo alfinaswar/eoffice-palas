@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->String('Total')->default(0);
             $table->text('Keterangan')->nullable();
             $table->enum('Status', ['Y', 'N'])->nullable()->default('N');
+            $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();

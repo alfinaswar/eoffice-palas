@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('master_grades', function (Blueprint $table) {
             $table->id();
+
             $table->string('Nama')->nullable();
             $table->string('Keterangan')->nullable();
             $table->string('KodeKantor')->nullable();

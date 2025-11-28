@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->string('DibayarOleh')->nullable();
             $table->string('DibayarPada')->nullable();
             $table->enum('Status', ['Lunas', 'Tidak'])->nullable()->default('Tidak');
+            $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();

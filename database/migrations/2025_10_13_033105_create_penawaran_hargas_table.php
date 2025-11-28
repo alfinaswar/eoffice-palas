@@ -32,6 +32,7 @@ return new class extends Migration {
             $table->string('DisetujuiOleh4')->nullable();
             $table->string('DiajukanOleh')->nullable();
             $table->string('DiajukanPada')->nullable();
+            $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();

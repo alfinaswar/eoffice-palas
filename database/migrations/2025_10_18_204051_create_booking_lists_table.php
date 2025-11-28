@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->dateTime('DiterimaPada')->nullable();
             $table->string('Penyetor')->nullable();
             $table->dateTime('DiserahkanPada')->nullable();
+            $table->string('KodeKantor')->nullable();
             $table->string('UserCreated')->nullable();
             $table->string('UserUpdated')->nullable();
             $table->string('UserDeleted')->nullable();

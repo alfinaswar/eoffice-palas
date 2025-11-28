@@ -38,11 +38,13 @@ class MasterBankController extends Controller
             'Nama' => 'required|string|max:255',
             'Kode' => 'required|string|max:255',
             'Status' => 'required|string|max:255',
+            'Rekening' => 'required|string|max:255',
         ]);
 
         MasterBank::create([
             'Nama' => $request->Nama,
             'Kode' => $request->Kode,
+            'Rekening' => $request->Rekening,
             'Keterangan' => $request->Keterangan,
             'Status' => $request->Status,
             'UserCreated' => auth()->user()->name,
@@ -69,12 +71,14 @@ class MasterBankController extends Controller
             'Nama' => 'required|string|max:255',
             'Kode' => 'required|string|max:255',
             'Status' => 'required|string|max:255',
+            'Rekening' => 'required|string|max:255',
         ]);
 
         $bank = MasterBank::findOrFail($id);
         $bank->update([
             'Nama' => $request->Nama,
             'Kode' => $request->Kode,
+            'Rekening' => $request->Rekening,
             'Keterangan' => $request->Keterangan,
             'Status' => $request->Status,
             'UserUpdated' => auth()->user()->name

@@ -30,7 +30,9 @@
                                 <input type="date" name="Tanggal" id="Tanggal"
                                     class="form-control @error('Tanggal') is-invalid @enderror"
                                     value="{{ old('Tanggal', date('Y-m-d')) }}">
-                                @error('Tanggal')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                                @error('Tanggal')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-8">
@@ -39,21 +41,25 @@
                                     class="form-select select2 @error('NamaPelanggan') is-invalid @enderror"
                                     data-placeholder="Pilih Pelanggan">
                                     <option value="">Pilih Pelanggan</option>
-                                    @foreach($customer as $cust)
-                                        <option value="{{ $cust->id }}" {{ old('NamaPelanggan') == $cust->id ? 'selected' : '' }}>
+                                    @foreach ($customer as $cust)
+                                        <option value="{{ $cust->id }}"
+                                            {{ old('NamaPelanggan') == $cust->id ? 'selected' : '' }}>
                                             {{ $cust->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('NamaPelanggan')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                                @error('NamaPelanggan')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-12">
                                 <label for="Keterangan" class="form-label fw-semibold">Keterangan</label>
                                 <textarea name="Keterangan" id="Keterangan" rows="2"
-                                    class="form-control @error('Keterangan') is-invalid @enderror"
-                                    placeholder="Keterangan tambahan">{{ old('Keterangan') }}</textarea>
-                                @error('Keterangan')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+                                    class="form-control @error('Keterangan') is-invalid @enderror" placeholder="Keterangan tambahan">{{ old('Keterangan') }}</textarea>
+                                @error('Keterangan')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -78,7 +84,8 @@
                                             <select name="IdProduk[]" class="form-select produk-select" required>
                                                 <option value="">Pilih Produk</option>
                                                 @foreach ($produk as $p)
-                                                    <option value="{{ $p->id }}" data-harga="{{ $p->HargaNormal }}">
+                                                    <option value="{{ $p->id }}"
+                                                        data-harga="{{ $p->HargaNormal }}">
                                                         {{ $p->Nama }}
                                                     </option>
                                                 @endforeach
@@ -90,11 +97,11 @@
                                         </td>
                                         <td>
                                             <input type="text" name="Harga[]" class="form-control harga-input text-end"
-                                                value="0" required>
+                                                value="0" required autocomplete="off">
                                         </td>
                                         <td>
-                                            <input type="number" name="Diskon[]" class="form-control diskon-input text-end"
-                                                value="0" min="0">
+                                            <input type="text" name="Diskon[]" class="form-control diskon-input text-end"
+                                                value="0" min="0" autocomplete="off">
                                         </td>
                                         <td>
                                             <select name="JenisDiskon[]" class="form-select jenis-diskon-input">
@@ -103,8 +110,8 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" name="Subtotal[]" class="form-control total-input text-end"
-                                                value="0" readonly>
+                                            <input type="text" name="Subtotal[]"
+                                                class="form-control total-input text-end" value="0" readonly>
                                         </td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-link text-danger p-0 btn-remove"
@@ -126,8 +133,8 @@
                         <div class="row justify-content-end align-items-center">
                             <div class="col-md-4">
                                 <label for="Total" class="form-label fw-semibold">Total Penawaran</label>
-                                <input type="text" name="Total" id="Total" class="form-control text-end fw-bold" value="0"
-                                    readonly>
+                                <input type="text" name="Total" id="Total"
+                                    class="form-control text-end fw-bold" value="0" readonly>
                             </div>
                         </div>
 
@@ -161,11 +168,17 @@
             return rupiah;
         }
 
+        function unformatRupiah(str) {
+            if (!str) return 0;
+            let unformat = (str + '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(unformat);
+        }
+
         function hitungTotalBaris(row) {
             // Harga asli diambil dari kolom harga-asli-input, yang readonly dan berisi harga produk asli
             let jumlah = 1; // HargaAsli kolom bukan jumlah qty, jadi 1 (readonly harga asli)
-            let harga = parseFloat(row.querySelector('.harga-input').value.replace(/\./g, '')) || 0;
-            let diskon = parseFloat(row.querySelector('.diskon-input').value) || 0;
+            let harga = unformatRupiah(row.querySelector('.harga-input').value) || 0;
+            let diskon = unformatRupiah(row.querySelector('.diskon-input').value) || 0;
             let jenisDiskon = row.querySelector('.jenis-diskon-input').value;
 
             let hargaSetelahDiskon = harga;
@@ -182,7 +195,7 @@
 
         function refreshTotalPenawaran() {
             let totalPenawaran = 0;
-            document.querySelectorAll('#table-produk .total-input').forEach(function (input) {
+            document.querySelectorAll('#table-produk .total-input').forEach(function(input) {
                 let val = (input.value || "").replaceAll('.', '').replace(',', '.');
                 totalPenawaran += parseFloat(val) || 0;
             });
@@ -190,14 +203,13 @@
         }
 
         // Tambah baris baru
-        document.getElementById('btn-add').addEventListener('click', function () {
+        document.getElementById('btn-add').addEventListener('click', function() {
             const tbody = document.querySelector('#table-produk tbody');
             const row = tbody.rows[0].cloneNode(true);
 
             // Bersihkan value input
             row.querySelectorAll('input').forEach(i => {
                 if (i.type === 'number' || i.type === 'text') {
-                    // Harga asli (readonly) direset ke 0, input lain selain harga asli juga ke 0
                     if (i.classList.contains('harga-asli-input')) {
                         i.value = '0';
                     } else if (i.classList.contains('harga-input')) {
@@ -215,8 +227,9 @@
         });
 
         // Remove baris produk
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('btn-remove') || (e.target.parentElement && e.target.parentElement.classList.contains('btn-remove'))) {
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-remove') || (e.target.parentElement && e.target.parentElement
+                    .classList.contains('btn-remove'))) {
                 const tr = e.target.closest('tr');
                 const tbody = tr.closest('tbody');
                 if (tbody.rows.length > 1) {
@@ -227,7 +240,7 @@
         });
 
         // Event: Saat memilih produk, set harga default dari data-harga pada kolom HargaAsli dan kolom harga yang ditawarkan
-        document.addEventListener('change', function (e) {
+        document.addEventListener('change', function(e) {
             if (e.target.classList.contains('produk-select')) {
                 const selected = e.target.options[e.target.selectedIndex];
                 const harga = selected.getAttribute('data-harga') || 0;
@@ -244,19 +257,36 @@
             }
         });
 
-        // Event: Saat harga/diskon/jenis diskon berubah, hitung total baris & summary
-        document.addEventListener('input', function (e) {
-            if (
-                e.target.classList.contains('harga-input')
-                || e.target.classList.contains('diskon-input')
-            ) {
+        // Event: Otomatis pakai titik pada harga yang ditawarkan & diskon saat diketik
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('harga-input') || e.target.classList.contains('diskon-input')) {
+                const caretPosition = e.target.selectionStart;
+                const oldLength = e.target.value.length;
+
+                // Remove all chars except number
+                let value = e.target.value.replace(/[^0-9]/g, '');
+
+                if (value.length === 0) {
+                    e.target.value = "";
+                } else {
+                    e.target.value = formatRupiah(value);
+                }
+
+                const newLength = e.target.value.length;
+                // Maintain caret position while typing
+                if (caretPosition !== null && caretPosition === oldLength) {
+                    e.target.setSelectionRange(newLength, newLength);
+                }
+
+                // setelah format, tetap hitung total & refresh
                 const tr = e.target.closest('tr');
                 hitungTotalBaris(tr);
                 refreshTotalPenawaran();
             }
         });
 
-        document.addEventListener('change', function (e) {
+        // Event: Saat harga/diskon/jenis diskon berubah, hitung total baris & summary
+        document.addEventListener('change', function(e) {
             if (e.target.classList.contains('jenis-diskon-input')) {
                 const tr = e.target.closest('tr');
                 hitungTotalBaris(tr);
@@ -264,16 +294,18 @@
             }
         });
 
-        // Harga format otomatis (rupiah) saat input harga
+        // Harga format otomatis (rupiah) saat input harga blurred (tidak perlu lagi, sudah on input)
+        /*
         document.addEventListener('blur', function (e) {
             if (e.target.classList.contains('harga-input')) {
                 e.target.value = formatRupiah(e.target.value.replace(/\./g, ''));
             }
         }, true);
+        */
 
         // Hitung total awal saat reload
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('#table-produk tbody tr').forEach(function (row) {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#table-produk tbody tr').forEach(function(row) {
                 hitungTotalBaris(row);
             });
             refreshTotalPenawaran();
