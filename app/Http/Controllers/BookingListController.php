@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookingList;
 use App\Models\MasterBank;
 use App\Models\PenawaranHarga;
+use App\Models\TransaksiKeuangan;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Illuminate\Http\Request;
@@ -88,7 +89,6 @@ class BookingListController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
-        // dd($data);
         $validatedData = $request->validate([
             'NamaPelangganPenawaran' => 'required',
             'Tanggal' => 'required',
@@ -99,7 +99,7 @@ class BookingListController extends Controller
         ]);
 
         $nomorBooking = $this->generateNomorBooking();
-        BookingList::create([
+        $booking = BookingList::create([
             'IdPenawaran' => $data['IdPenawaran'],
             'Nomor' => $nomorBooking,
             'IdProduk' => $data['IdProduk'],
@@ -113,6 +113,28 @@ class BookingListController extends Controller
             'Penerima' => auth()->user()->id,
             'DiterimaPada' => now(),
             'Penyetor' => $data['Penyetor'],
+        ]);
+
+        $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $data['Bank'])
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('SaldoSetelah');
+
+        $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+        $nominalMasuk = preg_replace('/[^\d]/', '', $data['TotalSetoran']);
+        $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+        $cariNama = User::find($data['NamaPelangganPenawaran'])->name;
+        TransaksiKeuangan::create([
+            'Tanggal' => $data['Tanggal'],
+            'Jenis' => 'IN',
+            'Kategori' => 'Booking',
+            'Deskripsi' => 'Penerimaan booking fee dengan nomor: ' . $nomorBooking . ', atas nama: ' . $cariNama,
+            'Nominal' => $nominalMasuk,
+            'NamaBank' => $data['Bank'],
+            'RefType' => 'BookingList',
+            'RefId' => $booking->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreate' => auth()->user()->name,
         ]);
         activity()
             ->causedBy(auth()->user()->id)

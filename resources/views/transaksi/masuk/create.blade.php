@@ -42,9 +42,9 @@
                                 <select name="IdPelanggan" id="IdPelanggan"
                                     class="form-control @error('IdPelanggan') is-invalid @enderror">
                                     <option value="">Pilih Pelanggan</option>
-                                    @if (isset($booking) && $booking->getCustomer)
-                                        <option value="{{ $booking->getCustomer->id }}" selected>
-                                            {{ $booking->getCustomer->name }}
+                                    @if (isset($dp) && $dp->getCustomer)
+                                        <option value="{{ $dp->getCustomer->id }}" selected>
+                                            {{ $dp->getCustomer->name }}
                                         </option>
                                     @endif
                                 </select>
@@ -58,9 +58,9 @@
                                     class="form-control @error('IdProduk') is-invalid @enderror"
                                     style="pointer-events: none; background-color: #f5f5f5;">
                                     <option value="">Pilih Produk</option>
-                                    @if (isset($booking) && $booking->getProduk)
-                                        <option value="{{ $booking->getProduk->id }}" selected>
-                                            {{ $booking->getProduk->Nama }}
+                                    @if (isset($dp) && $dp->getProduk)
+                                        <option value="{{ $dp->getProduk->id }}" selected>
+                                            {{ $dp->getProduk->Nama }}
                                         </option>
                                     @endif
                                 </select>
@@ -71,7 +71,7 @@
                             <div class="col-md-4">
                                 <label for="IdPetugas" class="form-label"><strong>Petugas</strong></label>
                                 <select name="IdPetugas" id="IdPetugas"
-                                    class="form-control @error('IdPetugas') is-invalid @enderror">
+                                    class="form-control @error('IdPetugas') is-invalid @enderror" readonly>
                                     <option value="">Pilih Petugas</option>
                                     <option value="{{ Auth::user()->id }}" selected>{{ Auth::user()->name }}</option>
                                 </select>
@@ -132,51 +132,37 @@
                             </script>
                             <div class="col-md-4">
                                 <label for="TotalHarga" class="form-label"><strong>Harga</strong></label>
+
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
                                     <input type="text" name="TotalHarga"
                                         class="form-control @error('TotalHarga') is-invalid @enderror" id="TotalHarga"
                                         placeholder="Total Harga"
-                                        value="{{ old('TotalHarga', isset($booking->getPenawaran->Total) ? number_format($booking->getPenawaran->Total, 0, ',', '.') : '') }}"
+                                        value="{{ old('TotalHarga', isset($dp->SisaBayar) ? number_format($dp->SisaBayar, 0, ',', '.') : '') }}"
                                         autocomplete="off" readonly>
+
                                 </div>
+                                <small class="text-danger d-block">*Harga sudah dikurangi biaya booking dan DP</small>
                                 @error('TotalHarga')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-4">
-                                <label for="BiayaBooking" class="form-label"><strong>Biaya Booking</strong></label>
+                                <label for="Dp" class="form-label"><strong>Down Payment (DP)</strong></label>
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
-                                    <input type="text" name="BiayaBooking" readonly
-                                        class="form-control @error('BiayaBooking') is-invalid @enderror" id="BiayaBooking"
-                                        placeholder="Total Harga"
-                                        value="{{ old('BiayaBooking', $booking->Total ?? '') }}" autocomplete="off">
+                                    <input type="text" name="Dp" readonly
+                                        class="form-control @error('Dp') is-invalid @enderror" id="Dp"
+                                        placeholder="Total Harga" value="{{ old('Dp', $dp->Total ?? '') }}"
+                                        autocomplete="off">
                                 </div>
-                                @error('BiayaBooking')
+                                @error('Dp')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            {{-- <div class="col-md-4">
-                                <label for="UangMuka" class="form-label"><strong>Uang Muka</strong></label>
-                                <input type="number" step="1" name="UangMuka"
-                                    class="form-control @error('UangMuka') is-invalid @enderror" id="UangMuka"
-                                    placeholder="Uang Muka" value="{{ old('UangMuka') }}">
-                                @error('UangMuka')
-                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                @enderror
-                            </div> --}}
-                            {{-- <div class="col-md-4">
-                                <label for="SisaBayar" class="form-label"><strong>Sisa Bayar</strong></label>
-                                <input type="number" step="1" name="SisaBayar"
-                                    class="form-control @error('SisaBayar') is-invalid @enderror" id="SisaBayar"
-                                    placeholder="Sisa Bayar" value="{{ old('SisaBayar') }}">
-                                @error('SisaBayar')
-                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                @enderror
-                            </div> --}}
+
 
                             <div class="col-md-12">
                                 <label for="Keterangan" class="form-label"><strong>Keterangan</strong></label>
@@ -224,7 +210,7 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const bookingInput = document.getElementById('BiayaBooking');
+            const bookingInput = document.getElementById('Dp');
 
             function formatRupiah(angka, prefix) {
                 let number_string = angka.replace(/[^,\d]/g, '').toString(),

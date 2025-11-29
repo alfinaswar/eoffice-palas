@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingList;
+use App\Models\DownPayment;
 use App\Models\MasterAngsuran;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
@@ -34,8 +35,8 @@ class TransaksiController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        $booking = BookingList::with('getProduk', 'getCustomer')->latest()->get();
-        return view('transaksi.masuk.index', compact('booking'));
+        $dp = DownPayment::with('getProduk', 'getCustomer')->latest()->get();
+        return view('transaksi.masuk.index', compact('dp'));
     }
 
     /**
@@ -44,9 +45,9 @@ class TransaksiController extends Controller
     public function create($id)
     {
         $id = decrypt($id);
-        $booking = BookingList::with('getPenawaran', 'getProduk')->find($id);
+        $dp = DownPayment::with('getCustomer', 'getProduk')->find($id);
         $angsuran = MasterAngsuran::get();
-        return view('transaksi.masuk.create', compact('booking', 'angsuran'));
+        return view('transaksi.masuk.create', compact('dp', 'angsuran'));
     }
 
     public function PrintKwitansi($id)
@@ -89,7 +90,7 @@ class TransaksiController extends Controller
             'JenisTransaksi' => 'required',
             'TotalHarga' => 'required|numeric',
         ]);
-
+        // dd($request->all());
         $generateKode = $this->generateKodeTransaksi();
 
         $transaksi = Transaksi::create([
@@ -100,10 +101,11 @@ class TransaksiController extends Controller
             'IdPetugas' => $request->IdPetugas,
             'JenisTransaksi' => $request->JenisTransaksi,
             'DurasiPembayaran' => $request->DurasiAngsuran,
-            'TotalHarga' => str_replace(['.', ','], '', $request->TotalHarga),
-            'UangMuka' => $request->UangMuka ?? null,
-            'SisaBayar' => $request->SisaBayar ?? null,
+            'TotalHarga' => $request->TotalHarga,
+            'UangMuka' => $request->Dp ?? null,
+            'SisaBayar' => $request->TotalHarga ?? null,
             'Keterangan' => $request->Keterangan ?? null,
+            'UserCreated' => auth()->user()->name,
         ]);
 
         if ($request->JenisTransaksi == 'Kredit' && !empty($request->DurasiAngsuran)) {
@@ -111,7 +113,7 @@ class TransaksiController extends Controller
 
             if ($angsuran) {
                 $jumlahBulan = intval($angsuran->JumlahPembayaran);
-                $totalHarga = (float) str_replace(['.', ','], '', $request->TotalHarga);
+                $totalHarga = $request->TotalHarga;
                 $besarCicilan = $jumlahBulan > 0 ? $totalHarga / $jumlahBulan : 0;
                 $tanggalJatuhTempoAwal = $angsuran->TanggalJatuhTempo;
                 if (!$tanggalJatuhTempoAwal) {
@@ -143,8 +145,8 @@ class TransaksiController extends Controller
                 'IdTransaksi' => $transaksi->id,
                 'IdPelanggan' => $request->IdPelanggan,
                 'CicilanKe' => 1,
-                'BesarCicilan' => str_replace(['.', ','], '', $request->TotalHarga),
-                'TotalPembayaran' => str_replace(['.', ','], '', $request->TotalHarga),
+                'BesarCicilan' => $request->TotalHarga,
+                'TotalPembayaran' => $request->TotalHarga,
                 'TanggalJatuhTempo' => $request->TanggalTransaksi,
                 'Status' => 'Lunas',
                 'UserCreated' => auth()->user()->name,

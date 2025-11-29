@@ -41,6 +41,9 @@ class DownPaymentController extends Controller
                 ->editColumn('customer_id', function ($row) {
                     return $row->getCustomer ? $row->getCustomer->name : '-';
                 })
+                ->editColumn('SisaBayar', function ($row) {
+                    return 'Rp ' . number_format($row->SisaBayar, 0, ',', '.');
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -76,7 +79,6 @@ class DownPaymentController extends Controller
      */
     public function store(Request $request)
     {
-
         $validatedData = $request->validate([
             'Tanggal' => 'required|date',
             'JenisPembayaran' => 'required',
@@ -122,7 +124,8 @@ class DownPaymentController extends Controller
 
         // Get the last DP for this month
         $lastDP = DownPayment::whereRaw("DATE_FORMAT(created_at, '%Y%m') = ?", [$dateSegment])
-            ->orderBy('id', 'desc')->first();
+            ->orderBy('id', 'desc')
+            ->first();
 
         if ($lastDP && isset($lastDP->Nomor)) {
             $parts = explode('-', $lastDP->Nomor);
@@ -153,12 +156,11 @@ class DownPaymentController extends Controller
     public function edit($id)
     {
         $id = decrypt($id);
-        $dp = DownPayment::with('getProduk', 'getCustomer', 'getPenerima')->findOrFail($id);
-        // $produk = MasterProduk::all();
-        // $bank = MasterBank::all();
-        // $customer = User::where('jenis_user', 'Customer')->get();
-        // return view('down-payments.edit', compact('dp', 'produk', 'bank', 'customer'));
-        return view('down-payments.edit', compact('dp'));
+        $dp = DownPayment::with('getProduk', 'getCustomer', 'getPenerima', 'getBooking')->findOrFail($id);
+        $produk = Produk::get();
+        $bank = MasterBank::all();
+        $customer = User::where('jenis_user', 'Customer')->get();
+        return view('down-payments.edit', compact('dp', 'produk', 'bank', 'customer'));
     }
 
     /**
@@ -167,39 +169,40 @@ class DownPaymentController extends Controller
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'customer_id' => 'required',
-            'produk_id' => 'required',
-            'tanggal' => 'required|date',
-            'total' => 'required|numeric',
-            'jenis_pembayaran' => 'required',
-            'nama_bank' => 'nullable|string',
-            'keterangan' => 'nullable',
-            'penyetor' => 'required',
+            'Tanggal' => 'required|date',
+            'JenisPembayaran' => 'required',
+            'Bank' => 'required',
+            'Penerima' => 'required|string',
+            'Penyetor' => 'required|string',
+            'Total' => 'required|string',
+            'SisaBayar' => 'required|string',
+            'Keterangan' => 'nullable|string',
         ]);
 
         $id = decrypt($id);
         $dp = DownPayment::findOrFail($id);
 
-        $dp->update([
-            'customer_id' => $validatedData['customer_id'],
-            'produk_id' => $validatedData['produk_id'],
-            'tanggal' => $validatedData['tanggal'],
-            'total' => $validatedData['total'],
-            'jenis_pembayaran' => $validatedData['jenis_pembayaran'],
-            'nama_bank' => $validatedData['nama_bank'] ?? null,
-            'keterangan' => $validatedData['keterangan'] ?? null,
-            'penerima' => auth()->user()->id,
-            'penyetor' => $validatedData['penyetor'],
-            'diterima_pada' => now(),
-        ]);
+        $dp->IdBooking = $request->get('IdBooking');
+        $dp->IdProduk = $request->get('IdProduk');
+        $dp->NamaPelanggan = $request->get('NamaPelanggan');
+        $dp->Tanggal = $request->get('Tanggal');
+        $dp->Total = preg_replace('/\D/', '', $request->get('Total'));
+        $dp->SisaBayar = $request->get('SisaBayarRaw');
+        $dp->JenisPembayaran = $request->get('JenisPembayaran');
+        $dp->Keterangan = $request->get('Keterangan');
+        $dp->Penyetor = $request->get('Penyetor');
+        $dp->UserUpdated = auth()->user()->id;
+
+        // simpan perubahan
+        $dp->save();
 
         activity()
             ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
-            ->log('Mengedit Down Payment ID: ' . $dp->id . ', atas nama customer ID: ' . $dp->customer_id);
+            ->log('Mengedit down payment ID: ' . $dp->id . ', atas nama customer ID: ' . $dp->NamaPelanggan);
 
         return redirect()
-            ->route('down-payments.index')
+            ->route('dp.index')
             ->with('success', 'Down Payment berhasil diupdate.');
     }
 

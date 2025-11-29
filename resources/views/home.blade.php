@@ -9,7 +9,7 @@
                     Hi, {{ auth()->user()->name }}!
                 </h3>
                 &nbsp;
-                <h6>Anda telah berhasil masuk ke dalam sistem Point of Sale (POS).</h6>
+                <h6>Anda telah berhasil masuk ke dalam sistem E-Office Tanah Emas Indonesia.</h6>
             </div>
             <div class="d-flex align-items-center">
                 <div class="position-relative me-3">
@@ -25,43 +25,96 @@
         </div>
 
         <div class="row sales-cards">
-            <div class="col-xl-6 col-sm-12 col-12">
+            <div class="col-xl-3 col-sm-6 col-12">
                 <div class="card d-flex align-items-center justify-content-between default-cover mb-4">
                     <div>
-                        <h6>Total Pendapatan Minggu Ini</h6>
-                        <h3>Rp.<span class="counters" data-count="{{ $totalPendapatanMingguIni }}">
-                                {{ 'Rp ' . number_format($totalPendapatanMingguIni, 0, ',', '.') }}
-                            </span>
+                        <h6>Uang Masuk</h6>
+                        <h3 class="counters" data-count="2500000">
+                            Rp 2.500.000
                         </h3>
-                        <p class="sales-range"><span class="text-success"><i data-feather="chevron-up"
-                                    class="feather-16"></i>&nbsp;</span>increase compare
-                            to
-                            last week</p>
+                        <p class="sales-range">
+                            <span class="text-success"><i data-feather="arrow-down-circle"
+                                    class="feather-16"></i>&nbsp;</span>
+                            Total uang masuk hari ini
+                        </p>
                     </div>
-                    <img src="assets/img/icons/weekly-earning.svg" alt="img">
+                    <img src="assets/img/icons/cash-in.svg" alt="img">
                 </div>
             </div>
             <div class="col-xl-3 col-sm-6 col-12">
-                <div class="card color-info bg-primary mb-4">
-                    <img src="assets/img/icons/total-sales.svg" alt="img">
-                    <h3 class="counters" data-count="0">0</h3>
-                    <p>Total Transaksi Hari Ini</p>
-                    <i data-feather="rotate-ccw" class="feather-16" data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="Refresh"></i>
+                <div class="card color-info bg-danger mb-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6>Uang Keluar</h6>
+                        <h3 class="counters" data-count="1500000">
+                            Rp 1.500.000
+                        </h3>
+                        <p class="sales-range">
+                            <span class="text-danger"><i data-feather="arrow-up-circle" class="feather-16"></i>&nbsp;</span>
+                            Total uang keluar hari ini
+                        </p>
+                    </div>
+                    <img src="assets/img/icons/cash-out.svg" alt="img">
                 </div>
             </div>
             <div class="col-xl-3 col-sm-6 col-12">
-                <div class="card color-info bg-secondary mb-4">
-                    <img src="assets/img/icons/purchased-earnings.svg" alt="img">
-                    <h3 class="counters" data-count="{{ $totalPendapatanHariIni }}">
-                        {{ 'Rp ' . number_format($totalPendapatanHariIni, 0, ',', '.') }}
-                    </h3>
-                    <p>Total Pendapatan Hari Ini</p>
-                    <i data-feather="rotate-ccw" class="feather-16" data-bs-toggle="tooltip" data-bs-placement="top"
-                        title="Refresh"></i>
+                <div class="card color-info bg-primary mb-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6>Kas Hari Ini</h6>
+                        <h3 class="counters" data-count="1000000">
+                            Rp 1.000.000
+                        </h3>
+                        <p class="sales-range">
+                            <span class="text-primary"><i data-feather="activity" class="feather-16"></i>&nbsp;</span>
+                            Saldo kas tunai hari ini
+                        </p>
+                    </div>
+                    <img src="assets/img/icons/cash-today.svg" alt="img">
+                </div>
+            </div>
+            <div class="col-xl-3 col-sm-6 col-12">
+                <div class="card color-info bg-secondary mb-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6>Rekap Bulan Ini</h6>
+                        <h3 class="counters" data-count="3600000">
+                            Rp 3.600.000
+                        </h3>
+                        <p class="sales-range">
+                            <span class="text-info"><i data-feather="calendar" class="feather-16"></i>&nbsp;</span>
+                            Total saldo bulan berjalan
+                        </p>
+                    </div>
+                    <img src="assets/img/icons/monthly-recap.svg" alt="img">
                 </div>
             </div>
         </div>
+        {{-- Chart --}}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Grafik Uang Masuk </div>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <canvas id="chartBar2" class="h-300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Grafik Uang Keluar </div>
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <canvas id="chartBar2" class="h-300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- end char --}}
         <div class="row">
             <div class="col-sm-12 col-md-12 col-xl-8 d-flex">
                 <div class="card flex-fill default-cover w-100 mb-4">
@@ -147,6 +200,9 @@
     </div>
 @endsection
 @push('js')
+    <!-- Chart JS -->
+    <script src="{{ asset('') }}assets/plugins/chartjs/chart.min.js"></script>
+    <script src="{{ asset('') }}assets/plugins/chartjs/chart-data.js"></script>
     <script>
         function updateTanggalJam() {
             const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];

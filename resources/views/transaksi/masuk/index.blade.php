@@ -27,8 +27,8 @@
         <div class="modal-dialog modal-xl">
             <!-- Modal tengah horizontal dan vertikal -->
             <div class="modal-content" style="margin: auto;">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title w-100 text-center" id="modalAmbilBookingLabel">Ambil Data Booking</h5>
+                <div class="modal-header bg-dark" style="color: white;">
+                    <h5 class="modal-title w-100" id="modalAmbilBookingLabel" style="color: white;">Ambil Data Booking</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -42,20 +42,20 @@
                                     <th>Nama Pelanggan</th>
                                     <th>Produk</th>
                                     <th>Tanggal</th>
-                                    <th>Total</th>
+                                    <th>Sisa Bayar</th>
                                     <th>Penyetor</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php $no = 1; @endphp
-                                @foreach($booking as $item)
+                                @foreach ($dp as $item)
                                     <tr>
                                         <td>{{ $no++ }}</td>
                                         <td>{{ $item->Nomor ?? '-' }}</td>
-                                        <td>{{ $item->NamaPelanggan ?? '-' }}</td>
+                                        <td>{{ $item->getCustomer->name ?? '-' }}</td>
                                         <td>
-                                            @if(isset($item->getProduk))
+                                            @if (isset($item->getProduk))
                                                 {{ $item->getProduk->Nama }}
                                             @else
                                                 -
@@ -63,7 +63,7 @@
                                         </td>
                                         <td>{{ $item->Tanggal ? \Carbon\Carbon::parse($item->Tanggal)->format('d-m-Y') : '-' }}
                                         </td>
-                                        <td class="text-end">Rp{{ number_format($item->Total ?? 0, 0, ',', '.') }}</td>
+                                        <td class="text-end">Rp{{ number_format($item->SisaBayar ?? 0, 0, ',', '.') }}</td>
                                         <td>{{ $item->Penyetor ?? '-' }}</td>
                                         <td>
                                             <a href="{{ route('transaksi.create', encrypt($item->id)) }}"
@@ -77,7 +77,7 @@
                         </table>
                     </div>
                     <script>
-                        $(function () {
+                        $(function() {
                             $('#bookingTable').DataTable({
                                 ordering: true,
                                 pageLength: 5,
@@ -133,7 +133,7 @@
         </script>
     @endif
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             function loadDataTable() {
                 $('#usersTable').DataTable({
                     responsive: true,
@@ -151,29 +151,29 @@
                         }
                     },
                     columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-                    {
-                        data: 'email',
-                        name: 'email'
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'name',
+                            name: 'name'
+                        },
+                        {
+                            data: 'email',
+                            name: 'email'
+                        },
+                        {
+                            data: 'created_at',
+                            name: 'created_at'
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false
+                        }
                     ]
                 });
             }
