@@ -6,6 +6,7 @@ use App\Models\BookingList;
 use App\Models\DownPayment;
 use App\Models\MasterBank;
 use App\Models\Produk;
+use App\Models\TransaksiKeuangan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
@@ -80,24 +81,36 @@ class DownPaymentController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
+            'IdBooking' => 'required|numeric',
+            'IdProduk' => 'required|numeric',
+            'NamaPelanggan' => 'required|string',
             'Tanggal' => 'required|date',
             'JenisPembayaran' => 'required',
-            'Bank' => 'required',
+            'Bank' => 'required|string',
             'Penerima' => 'required|string',
             'Penyetor' => 'required|string',
             'TotalSetoran' => 'required|string',
             'SisaBayar' => 'required|string',
             'Keterangan' => 'nullable|string',
         ]);
-        // dd($request->all());
+
+        // Hitung nominal masuk (setoran DP) dan sisa bayar sesuai format
+        $nominalMasuk = preg_replace('/[^\d]/', '', $request->get('TotalSetoran'));
+        $sisaBayar = preg_replace('/[^\d]/', '', $request->get('SisaBayar'));
+
+        // Ambil objek booking terkait, jika perlu informasi lanjut
+        $booking = BookingList::find($request->get('IdBooking'));
+        $produk = Produk::find($request->get('IdProduk'));
+        $pelanggan = User::find($request->get('NamaPelanggan'));
+
         $dp = DownPayment::create([
             'IdBooking' => $request->get('IdBooking'),
             'Nomor' => $this->generateKodeDP(),
             'IdProduk' => $request->get('IdProduk'),
-            'NamaPelanggan' => $request->get('NamaPelanggan'),
+            'NamaPelanggan' => $request->get('NamaPelanggan'), // gunakan ID user customer
             'Tanggal' => $request->get('Tanggal'),
-            'Total' => preg_replace('/\D/', '', $request->get('TotalSetoran')),
-            'SisaBayar' => $request->get('SisaBayarRaw'),
+            'Total' => $nominalMasuk,
+            'SisaBayar' => $sisaBayar,
             'JenisPembayaran' => $request->get('JenisPembayaran'),
             'Keterangan' => $request->get('Keterangan'),
             'Penerima' => auth()->user()->id,
@@ -107,10 +120,50 @@ class DownPaymentController extends Controller
             'UserCreated' => $request->get('UserCreated') ?? auth()->user()->id,
         ]);
 
+        // Pengelolaan transaksi keuangan (kategori: DownPayment)
+        $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $request->get('Bank'))
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('SaldoSetelah');
+
+        $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+        $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+
+        TransaksiKeuangan::create([
+            'Tanggal' => $request->get('Tanggal'),
+            'Jenis' => 'IN',
+            'Kategori' => 'DownPayment',
+            'Deskripsi' => 'Down Payment untuk booking nomor: ' . ($booking ? $booking->Nomor : $request->get('IdBooking')) . ', atas nama: ' . ($pelanggan ? $pelanggan->name : '-'),
+            'Nominal' => $nominalMasuk,
+            'NamaBank' => $request->get('Bank'),
+            'RefType' => 'DownPayment',
+            'RefId' => $dp->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreate' => auth()->user()->name,
+        ]);
+
+        $transaksisAfter = TransaksiKeuangan::where('NamaBank', $request->get('Bank'))
+            ->where('id', '>', function ($query) use ($request) {
+                $query->select('id')
+                    ->from('transaksi_keuangans')
+                    ->where('NamaBank', $request->get('Bank'))
+                    ->orderBy('id', 'desc')
+                    ->limit(1);
+            })
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $saldo = $saldoSetelah;
+        foreach ($transaksisAfter as $trx) {
+            $delta = ($trx->Jenis === 'IN' ? 1 : -1) * preg_replace('/[^\d]/', '', $trx->Nominal);
+            $saldo += $delta;
+            $trx->update(['SaldoSetelah' => $saldo]);
+        }
+
         activity()
             ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
-            ->log('Menambah down payment baru ID: ' . $dp->id . ', atas nama customer ID: ' . $dp->customer_id);
+            ->log('Menambah down payment baru ID: ' . $dp->id . ', atas nama customer ID: ' . $dp->NamaPelanggan);
 
         return redirect()
             ->route('dp.index')

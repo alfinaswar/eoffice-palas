@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
+use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Carbon\Carbon;
@@ -26,38 +27,60 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        $today = Carbon::today();
-        $totalPendapatanHariIni = TransaksiDetail::whereDate('DibayarPada', $today)
-            ->where('Status', 'Lunas')
-            ->sum('TotalPembayaran');
+        $totalUangMasukHariIni = TransaksiKeuangan::where('Jenis', 'IN')
+            ->whereDate('Tanggal', Carbon::today())
+            ->sum('Nominal');
+        $totalUangKeluarHariIni = TransaksiKeuangan::where('Jenis', 'OUT')
+            ->whereDate('Tanggal', Carbon::today())
+            ->sum('Nominal');
+        $totalUangMasukBulanIni = TransaksiKeuangan::where('Jenis', 'IN')
+            ->whereMonth('Tanggal', Carbon::now()->month)
+            ->whereYear('Tanggal', Carbon::now()->year)
+            ->sum('Nominal');
 
-        // Minggu ini (mulai Senin sampai Minggu)
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
-        $totalPendapatanMingguIni = TransaksiDetail::whereBetween('DibayarPada', [$startOfWeek, $endOfWeek])
-            ->where('Status', 'Lunas')
-            ->sum('TotalPembayaran');
 
-        // Bulan ini
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
-        $pendapatanBulanIni = TransaksiDetail::whereBetween('DibayarPada', [$startOfMonth, $endOfMonth])
-            ->where('Status', 'Lunas')
-            ->sum('TotalPembayaran');
+        $months = [];
+        $labelMonths = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $months[] = $date->format('Y-m');
+            $labelMonths[] = $date->format('M');
+        }
 
-        $RiwayatTransaksi = TransaksiDetail::with('getCustomer', 'transaksi.getProduk')
-            ->whereDate('created_at', $today)
-            ->where('Status', 'Lunas')
-            ->get();
-        // Perbaiki query agar setiap record hasil query memiliki relasi produk (getProduk) yang benar, gunakan with() setelah get()
-        $ProdukTerpopuler = Transaksi::selectRaw('IdProduk, COUNT(*) as total_terjual')
-            ->groupBy('IdProduk')
-            ->orderByDesc('total_terjual')
-            ->limit(10)
-            ->get();
-        $ProdukTerpopuler = $ProdukTerpopuler->load('getProduk');
-        // dd($ProdukTerpopuler);
-        $RiwayatTransaksi = TransaksiDetail::with('getCustomer', 'transaksi.getProduk')->whereDate('created_at', $today)->get();
-        return view('home', compact('ProdukTerpopuler', 'RiwayatTransaksi', 'totalPendapatanHariIni', 'totalPendapatanMingguIni', 'pendapatanBulanIni'));
+        // Uang Masuk per bulan
+        $totalUangMasukPerBulan = [];
+        foreach ($months as $ym) {
+            $total = TransaksiKeuangan::where('Jenis', 'IN')
+                ->whereYear('Tanggal', substr($ym, 0, 4))
+                ->whereMonth('Tanggal', substr($ym, 5, 2))
+                ->sum('Nominal');
+            $totalUangMasukPerBulan[] = (int) $total;
+        }
+
+        // Uang Keluar per bulan
+        $totalUangKeluarPerBulan = [];
+        foreach ($months as $ym) {
+            $totalKeluar = TransaksiKeuangan::where('Jenis', 'OUT')
+                ->whereYear('Tanggal', substr($ym, 0, 4))
+                ->whereMonth('Tanggal', substr($ym, 5, 2))
+                ->sum('Nominal');
+            $totalUangKeluarPerBulan[] = (int) $totalKeluar;
+        }
+
+        $chartBar2Labels = $labelMonths;
+        $chartBar2Data = $totalUangMasukPerBulan;
+        $chartBarKeluarLabels = $labelMonths;
+        $chartBarKeluarData = $totalUangKeluarPerBulan;
+
+        // dd($chartBar2Data, $chartBarKeluarData);
+        return view('home', compact(
+            'chartBar2Data',
+            'chartBar2Labels',
+            'totalUangMasukHariIni',
+            'totalUangKeluarHariIni',
+            'totalUangMasukBulanIni',
+            'chartBarKeluarLabels',
+            'chartBarKeluarData'
+        ));
     }
 }

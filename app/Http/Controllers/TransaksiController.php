@@ -7,6 +7,7 @@ use App\Models\DownPayment;
 use App\Models\MasterAngsuran;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
+use App\Models\TransaksiKeuangan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -218,11 +219,12 @@ class TransaksiController extends Controller
     {
         $request->validate([
             'DibayarOleh' => 'required|string',
+            'Bank' => 'required|string', // pastikan kolom bank diminta di form
         ]);
 
         $id_transaksi_detail = decrypt($request->input('IdTransaksiDetail'));
         $transaksiDetail = TransaksiDetail::with('transaksi')->findOrFail($id_transaksi_detail);
-        // dd($transaksiDetail);
+
         $transaksiDetail->KodeBayar = $this->generateKodeBayar();
         $transaksiDetail->Status = 'Lunas';
         $transaksiDetail->DibayarPada = now();
@@ -238,6 +240,60 @@ class TransaksiController extends Controller
             }
             $transaksi->save();
         }
+
+        // === MASUKKAN KE TRANSAKSI KEUANGAN ===
+        // Ambil saldo terakhir di bank yang bersangkutan
+        $namaBank = $request->input('Bank');
+        $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $namaBank)
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('SaldoSetelah');
+        $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+        $nominalMasuk = preg_replace('/[^\d]/', '', $transaksiDetail->BesarCicilan);
+
+        $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+
+        // Ambil nama produk & customer (jika ada), dan parent transaksi untuk keterangan
+        $deskripsi = 'Pembayaran tagihan';
+        if ($transaksi) {
+            $produk = $transaksi->getProduk ? $transaksi->getProduk->Nama : '-';
+            $customer = $transaksi->getUser ? $transaksi->getUser->name : '-';
+            $nomorTrans = $transaksi->Nomor ?? $transaksi->id;
+            $deskripsi .= ' (Nomor: ' . $nomorTrans . ', Produk: ' . $produk . ', Atas nama: ' . $customer . ')';
+        } else {
+            $deskripsi .= ' Kode Bayar: ' . $transaksiDetail->KodeBayar;
+        }
+
+        TransaksiKeuangan::create([
+            'Tanggal' => now(), // bisa gunakan $transaksiDetail->DibayarPada
+            'Jenis' => 'IN',
+            'Kategori' => 'PembayaranTagihan',
+            'Deskripsi' => $deskripsi,
+            'Nominal' => $nominalMasuk,
+            'NamaBank' => $namaBank,
+            'RefType' => 'TransaksiDetail',
+            'RefId' => $transaksiDetail->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreate' => auth()->user()->name,
+        ]);
+
+        // Update saldo semua transaksi berikutnya di bank sama
+        $lastId = TransaksiKeuangan::where('NamaBank', $namaBank)
+            ->orderBy('id', 'desc')
+            ->value('id');
+
+        $transaksisAfter = TransaksiKeuangan::where('NamaBank', $namaBank)
+            ->where('id', '>', $lastId)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $saldo = $saldoSetelah;
+        foreach ($transaksisAfter as $trx) {
+            $delta = ($trx->Jenis === 'IN' ? 1 : -1) * preg_replace('/[^\d]/', '', $trx->Nominal);
+            $saldo += $delta;
+            $trx->update(['SaldoSetelah' => $saldo]);
+        }
+        // === END MASUKKAN KE TRANSAKSI KEUANGAN ===
 
         activity()
             ->causedBy(auth()->user()->id)

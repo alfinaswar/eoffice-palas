@@ -225,6 +225,7 @@ class BookingListController extends Controller
     {
         $data = $request->all();
 
+        // Validasi data edit
         $validatedData = $request->validate([
             'NamaPelangganPenawaran' => 'required',
             'Tanggal' => 'required',
@@ -237,11 +238,12 @@ class BookingListController extends Controller
         $id = decrypt($id);
         $bookingList = BookingList::findOrFail($id);
 
+        // Simpan perubahan booking
         $bookingList->update([
             'NamaPelanggan' => $data['NamaPelangganPenawaran'],
             'Tanggal' => $data['Tanggal'],
             'Total' => preg_replace('/[^\d]/', '', $data['TotalSetoran']),
-            'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar']),
+            'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar'] ?? 0),
             'JenisPembayaran' => $data['JenisPembayaran'],
             'NamaBank' => $data['Bank'] ?? null,
             'Keterangan' => $data['Keterangan'] ?? null,
@@ -249,6 +251,69 @@ class BookingListController extends Controller
             'DiterimaPada' => now(),
             'Penyetor' => $data['Penyetor'],
         ]);
+
+        $nominalMasuk = preg_replace('/[^\d]/', '', $data['TotalSetoran']);
+        $cariNama = User::find($data['NamaPelangganPenawaran'])->name;
+
+        $transaksi = TransaksiKeuangan::where('RefId', $bookingList->id)
+            ->where('Kategori', 'Booking')
+            ->where('RefType', 'BookingList')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($transaksi) {
+            $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $data['Bank'])
+                ->where('id', '<', $transaksi->id)
+                ->orderBy('id', 'desc')
+                ->value('SaldoSetelah');
+
+            $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+            $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+
+            $transaksi->update([
+                'Tanggal' => $data['Tanggal'],
+                'Jenis' => 'IN',
+                'Kategori' => 'Booking',
+                'Deskripsi' => 'booking fee dengan nomor: ' . $bookingList->Nomor . ', atas nama: ' . $cariNama,
+                'Nominal' => $nominalMasuk,
+                'NamaBank' => $data['Bank'],
+                'RefType' => 'BookingList',
+                'RefId' => $bookingList->id,
+                'SaldoSetelah' => $saldoSetelah,
+                'UserCreate' => auth()->user()->name,
+            ]);
+            $transaksisAfter = TransaksiKeuangan::where('NamaBank', $data['Bank'])
+                ->where('id', '>', $transaksi->id)
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $saldo = $saldoSetelah;
+            foreach ($transaksisAfter as $trx) {
+                $delta = ($trx->Jenis === 'IN' ? 1 : -1) * preg_replace('/[^\d]/', '', $trx->Nominal);
+                $saldo += $delta;
+                $trx->update(['SaldoSetelah' => $saldo]);
+            }
+        } else {
+            $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $data['Bank'])
+                ->orderBy('Tanggal', 'desc')
+                ->orderBy('id', 'desc')
+                ->value('SaldoSetelah');
+
+            $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+            $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+            TransaksiKeuangan::create([
+                'Tanggal' => $data['Tanggal'],
+                'Jenis' => 'IN',
+                'Kategori' => 'Booking',
+                'Deskripsi' => 'Edit booking fee dengan nomor: ' . $bookingList->Nomor . ', atas nama: ' . $cariNama,
+                'Nominal' => $nominalMasuk,
+                'NamaBank' => $data['Bank'],
+                'RefType' => 'BookingList',
+                'RefId' => $bookingList->id,
+                'SaldoSetelah' => $saldoSetelah,
+                'UserCreate' => auth()->user()->name,
+            ]);
+        }
 
         activity()
             ->causedBy(auth()->user()->id)

@@ -20,6 +20,39 @@
                                     name="DibayarOleh" required>
                             </div>
                         </div>
+
+                        <!-- INFO REKENING PEMBAYAR -->
+                        <div class="col-md-6 mb-3">
+                            <label for="dari_bank" class="form-label">Rekening Pembayar - Nama Bank</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-feather="credit-card"></i></span>
+                                <select class="form-select select2" id="dari_bank" name="DariBank" style="width: 100%;"
+                                    data-placeholder="Pilih Nama Bank Pembayar">
+                                    <option value="">Pilih Nama Bank Pembayar</option>
+                                    <option value="BCA">BCA</option>
+                                    <option value="Mandiri">Mandiri</option>
+                                    <option value="BRI">BRI</option>
+                                    <option value="BNI">BNI</option>
+                                    <option value="CIMB">CIMB</option>
+                                    <option value="Danamon">Danamon</option>
+                                    <option value="Permata">Permata</option>
+                                    <option value="BTN">BTN</option>
+                                    <option value="Maybank">Maybank</option>
+                                    <option value="OCBC">OCBC</option>
+                                    <!-- Tambahkan daftar bank lain sesuai kebutuhan -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="no_rekening" class="form-label">Rekening Pembayar - No. Rekening</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i data-feather="hash"></i></span>
+                                <input type="text" class="form-control" placeholder="Nomor Rekening" id="no_rekening"
+                                    name="NoRekening">
+                            </div>
+                        </div>
+                        <!-- END INFO REKENING PEMBAYAR -->
+
                         <div class="col-md-6 mb-3">
                             <label for="input-cicilan-ke" class="form-label">Pembayaran Ke</label>
                             <div class="input-group">
@@ -36,6 +69,52 @@
                                     id="input-besar-cicilan" readonly placeholder="-" value="">
                             </div>
                         </div>
+
+                        <!-- INFO REKENING PENERIMA -->
+                        <div class="col-12 mb-3 mt-2">
+                            <label class="form-label">Rekening Penerima</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i data-feather="credit-card"></i></span>
+                                        <select class="form-select select2" name="NamaBank" id="nama_bank_select"
+                                            style="width: 100%;" data-placeholder="Pilih Nama Bank Penerima">
+                                            <option value="">Pilih Nama Bank Penerima</option>
+                                            <option value="BCA">BCA</option>
+                                            <option value="Mandiri">Mandiri</option>
+                                            <option value="BRI">BRI</option>
+                                            <option value="BNI">BNI</option>
+                                            <option value="CIMB">CIMB</option>
+                                            <option value="Danamon">Danamon</option>
+                                            <option value="Permata">Permata</option>
+                                            <option value="BTN">BTN</option>
+                                            <option value="Maybank">Maybank</option>
+                                            <option value="OCBC">OCBC</option>
+                                            <!-- Tambahkan daftar bank lain sesuai kebutuhan -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i data-feather="hash"></i></span>
+                                        <input type="text" class="form-control"
+                                            placeholder="No. Rekening Penerima" name="NoRekeningPenerima"
+                                            id="no_rekening_penerima">
+                                    </div>
+                                </div>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    if (window.jQuery && $('.select2').length) {
+                                        $('.select2').select2({
+                                            dropdownParent: $('#modalBayar') // ganti dengan id modal jika perlu
+                                        });
+                                    }
+                                });
+                            </script>
+                        </div>
+                        <!-- END INFO REKENING PENERIMA -->
+
                     </div>
                     <input type="hidden" name="IdTransaksi" value="{{ $data->id }}">
                     <input type="hidden" name="IdTransaksiDetail" id="id_transaksi_detail">
@@ -43,7 +122,8 @@
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success w-100"><i data-feather="check-circle"
                             class="me-2"></i>Bayar Sekarang</button>
-                    <button type="button" class="btn btn-secondary w-100 mt-2" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary w-100 mt-2"
+                        data-bs-dismiss="modal">Batal</button>
                 </div>
             </div>
         </form>
