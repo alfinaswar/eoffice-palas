@@ -56,6 +56,22 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+                            <div class="col-md-4">
+                                <label for="SumberDana" class="form-label fw-semibold">Sumber Dana</label>
+                                <select name="SumberDana" id="SumberDana"
+                                    class="select2 form-control @error('SumberDana') is-invalid @enderror">
+                                    <option value="">Pilih Sumber Dana</option>
+                                    @foreach ($bank as $option)
+                                        <option value="{{ $option->id }}"
+                                            {{ (old('SumberDana') ?? $transaksiKeluar->SumberDana) == $option->id ? 'selected' : '' }}>
+                                            {{ $option->Nama }} - {{ $option->Rekening }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('SumberDana')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
                             <div class="col-md-12">
                                 <label for="Keterangan" class="form-label fw-semibold">Keterangan</label>
                                 <textarea name="Keterangan" id="Keterangan" rows="3"

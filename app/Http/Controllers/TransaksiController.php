@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookingList;
 use App\Models\DownPayment;
 use App\Models\MasterAngsuran;
+use App\Models\MasterBank;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiKeuangan;
@@ -203,8 +204,10 @@ class TransaksiController extends Controller
     public function show($id)
     {
         $id = decrypt($id);
+        $bank = MasterBank::get();
+        // dd($bank);
         $data = Transaksi::with('getTransaksi', 'getUser', 'getProduk', 'getDurasiPembayaran')->find($id);
-        return view('transaksi.masuk.tagihan-pelanggan', compact('data'));
+        return view('transaksi.masuk.tagihan-pelanggan', compact('data', 'bank'));
     }
 
     /**
@@ -217,9 +220,12 @@ class TransaksiController extends Controller
 
     public function PembayaranTagihan(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'DibayarOleh' => 'required|string',
-            'Bank' => 'required|string', // pastikan kolom bank diminta di form
+            'NamaBank' => 'required|string',
+            'DariBank' => 'required|string',
+            'NoRekeningPenerima' => 'required|string',
         ]);
 
         $id_transaksi_detail = decrypt($request->input('IdTransaksiDetail'));
@@ -241,9 +247,7 @@ class TransaksiController extends Controller
             $transaksi->save();
         }
 
-        // === MASUKKAN KE TRANSAKSI KEUANGAN ===
-        // Ambil saldo terakhir di bank yang bersangkutan
-        $namaBank = $request->input('Bank');
+        $namaBank = $request->input('NamaBank');
         $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $namaBank)
             ->orderBy('Tanggal', 'desc')
             ->orderBy('id', 'desc')
@@ -252,20 +256,17 @@ class TransaksiController extends Controller
         $nominalMasuk = preg_replace('/[^\d]/', '', $transaksiDetail->BesarCicilan);
 
         $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
-
-        // Ambil nama produk & customer (jika ada), dan parent transaksi untuk keterangan
         $deskripsi = 'Pembayaran tagihan';
         if ($transaksi) {
-            $produk = $transaksi->getProduk ? $transaksi->getProduk->Nama : '-';
+            $cicilanKe = $transaksiDetail->CicilanKe ?? '-';
             $customer = $transaksi->getUser ? $transaksi->getUser->name : '-';
-            $nomorTrans = $transaksi->Nomor ?? $transaksi->id;
-            $deskripsi .= ' (Nomor: ' . $nomorTrans . ', Produk: ' . $produk . ', Atas nama: ' . $customer . ')';
+            $deskripsi .= ' ke ' . $cicilanKe . ' atas nama ' . $customer;
         } else {
             $deskripsi .= ' Kode Bayar: ' . $transaksiDetail->KodeBayar;
         }
 
         TransaksiKeuangan::create([
-            'Tanggal' => now(), // bisa gunakan $transaksiDetail->DibayarPada
+            'Tanggal' => now(),  // bisa gunakan $transaksiDetail->DibayarPada
             'Jenis' => 'IN',
             'Kategori' => 'PembayaranTagihan',
             'Deskripsi' => $deskripsi,
@@ -277,7 +278,6 @@ class TransaksiController extends Controller
             'UserCreate' => auth()->user()->name,
         ]);
 
-        // Update saldo semua transaksi berikutnya di bank sama
         $lastId = TransaksiKeuangan::where('NamaBank', $namaBank)
             ->orderBy('id', 'desc')
             ->value('id');
@@ -293,7 +293,6 @@ class TransaksiController extends Controller
             $saldo += $delta;
             $trx->update(['SaldoSetelah' => $saldo]);
         }
-        // === END MASUKKAN KE TRANSAKSI KEUANGAN ===
 
         activity()
             ->causedBy(auth()->user()->id)

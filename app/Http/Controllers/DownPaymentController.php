@@ -86,7 +86,7 @@ class DownPaymentController extends Controller
             'NamaPelanggan' => 'required|string',
             'Tanggal' => 'required|date',
             'JenisPembayaran' => 'required',
-            'Bank' => 'required|string',
+            'NamaBank' => 'nullable|string',
             'Penerima' => 'required|string',
             'Penyetor' => 'required|string',
             'TotalSetoran' => 'required|string',
@@ -94,30 +94,40 @@ class DownPaymentController extends Controller
             'Keterangan' => 'nullable|string',
         ]);
 
-        // Hitung nominal masuk (setoran DP) dan sisa bayar sesuai format
         $nominalMasuk = preg_replace('/[^\d]/', '', $request->get('TotalSetoran'));
         $sisaBayar = preg_replace('/[^\d]/', '', $request->get('SisaBayar'));
 
-        // Ambil objek booking terkait, jika perlu informasi lanjut
         $booking = BookingList::find($request->get('IdBooking'));
         $produk = Produk::find($request->get('IdProduk'));
         $pelanggan = User::find($request->get('NamaPelanggan'));
-
+        if ($request->hasFile('Bukti')) {
+            $file = $request->file('Bukti');
+            $filename = 'bukti_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('bukti-booking', $filename, 'public');
+            $data['Bukti'] = $path;
+        } else {
+            $data['Bukti'] = null;
+        }
         $dp = DownPayment::create([
             'IdBooking' => $request->get('IdBooking'),
             'Nomor' => $this->generateKodeDP(),
             'IdProduk' => $request->get('IdProduk'),
-            'NamaPelanggan' => $request->get('NamaPelanggan'), // gunakan ID user customer
+            'NamaPelanggan' => $request->get('NamaPelanggan'),  // gunakan ID user customer
             'Tanggal' => $request->get('Tanggal'),
             'Total' => $nominalMasuk,
             'SisaBayar' => $sisaBayar,
             'JenisPembayaran' => $request->get('JenisPembayaran'),
             'Keterangan' => $request->get('Keterangan'),
+            'NamaBank' => $request->get('NamaBank'),
+            'DariBank' => $request->get('DariBank'),
+            'NoRekening' => $request->get('NoRekening'),
+            'Bukti' => $data['Bukti'],
             'Penerima' => auth()->user()->id,
             'DiterimaPada' => $request->get('DiterimaPada') ?? now(),
             'Penyetor' => $request->get('Penyetor'),
             'DiserahkanPada' => $request->get('DiserahkanPada'),
             'UserCreated' => $request->get('UserCreated') ?? auth()->user()->id,
+            'KodeKantor' => auth()->user()->KodeKantor,
         ]);
 
         // Pengelolaan transaksi keuangan (kategori: DownPayment)
@@ -144,7 +154,8 @@ class DownPaymentController extends Controller
 
         $transaksisAfter = TransaksiKeuangan::where('NamaBank', $request->get('Bank'))
             ->where('id', '>', function ($query) use ($request) {
-                $query->select('id')
+                $query
+                    ->select('id')
                     ->from('transaksi_keuangans')
                     ->where('NamaBank', $request->get('Bank'))
                     ->orderBy('id', 'desc')
@@ -221,13 +232,14 @@ class DownPaymentController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // dd($request->all());
         $validatedData = $request->validate([
             'Tanggal' => 'required|date',
             'JenisPembayaran' => 'required',
-            'Bank' => 'required',
+            'NamaBank' => 'nullable',  // Updated to match field used below
             'Penerima' => 'required|string',
             'Penyetor' => 'required|string',
-            'Total' => 'required|string',
+            'TotalSetoran' => 'required|string',
             'SisaBayar' => 'required|string',
             'Keterangan' => 'nullable|string',
         ]);
@@ -235,19 +247,78 @@ class DownPaymentController extends Controller
         $id = decrypt($id);
         $dp = DownPayment::findOrFail($id);
 
+        if ($request->hasFile('Bukti')) {
+            $file = $request->file('Bukti');
+            $filename = 'bukti_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('bukti-booking', $filename, 'public');
+            $data['Bukti'] = $path;
+        } else {
+            $data['Bukti'] = $dp->Bukti;  // Keep old file if not updating
+        }
+        $total = preg_replace('/[^\d]/', '', $request->get('TotalSetoran'));
+        $sisaBayar = $request->get('SisaBayarRaw') ?? preg_replace('/[^\d]/', '', $request->get('SisaBayar'));
+
         $dp->IdBooking = $request->get('IdBooking');
         $dp->IdProduk = $request->get('IdProduk');
         $dp->NamaPelanggan = $request->get('NamaPelanggan');
         $dp->Tanggal = $request->get('Tanggal');
-        $dp->Total = preg_replace('/\D/', '', $request->get('Total'));
-        $dp->SisaBayar = $request->get('SisaBayarRaw');
+        $dp->Total = $total;
+        $dp->SisaBayar = $sisaBayar;
         $dp->JenisPembayaran = $request->get('JenisPembayaran');
         $dp->Keterangan = $request->get('Keterangan');
         $dp->Penyetor = $request->get('Penyetor');
+        $dp->NamaBank = $request->get('NamaBank');
+        $dp->DariBank = $request->get('DariBank');
+        $dp->Bukti = $data['Bukti'];
         $dp->UserUpdated = auth()->user()->id;
 
-        // simpan perubahan
         $dp->save();
+
+        $transaksi = TransaksiKeuangan::where([
+            ['RefType', '=', 'DownPayment'],
+            ['RefId', '=', $dp->id]
+        ])->first();
+
+        // Find previous saldo for the selected bank
+        $previousSaldoTrans = TransaksiKeuangan::where('NamaBank', $dp->NamaBank)
+            ->where(function ($query) use ($dp, $transaksi) {  // Pass $transaksi into the closure
+                $query
+                    ->where('Tanggal', '<', $dp->Tanggal)
+                    ->orWhere(function ($q) use ($dp, $transaksi) {
+                        $q
+                            ->where('Tanggal', $dp->Tanggal)
+                            ->where('id', '<', optional($transaksi)->id ?? 0);
+                    });
+            })
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+        $saldoSebelumnya = $previousSaldoTrans ? preg_replace('/[^\d]/', '', $previousSaldoTrans->SaldoSetelah) : 0;
+        $nominalMasuk = $total;
+        $saldoSetelah = (int) $saldoSebelumnya + (int) $nominalMasuk;
+
+        // Get customer name
+        $customer = User::find($dp->NamaPelanggan);
+        $customerName = $customer ? $customer->name : '-';
+
+        $transaksiData = [
+            'Tanggal' => $dp->Tanggal,
+            'Jenis' => 'IN',
+            'Kategori' => 'DownPayment',
+            'Deskripsi' => 'Penerimaan Down Payment dengan nomor: ' . $dp->Nomor . ', atas nama: ' . $customerName,
+            'Nominal' => $nominalMasuk,
+            'NamaBank' => $dp->NamaBank,
+            'RefType' => 'DownPayment',
+            'RefId' => $dp->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreate' => auth()->user()->name,
+        ];
+
+        if ($transaksi) {
+            $transaksi->update($transaksiData);
+        } else {
+            TransaksiKeuangan::create($transaksiData);
+        }
 
         activity()
             ->causedBy(auth()->user()->id)

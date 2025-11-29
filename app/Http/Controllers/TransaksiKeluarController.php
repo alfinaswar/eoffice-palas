@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MasterBank;
 use App\Models\MasterJenisPengeluaran;
 use App\Models\TransaksiKeluar;
 use App\Models\TransaksiKeluarDetail;
+use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 use Laraindo\RupiahFormat;
 use Yajra\DataTables\Facades\DataTables;
@@ -47,16 +49,17 @@ class TransaksiKeluarController extends Controller
 
     public function create()
     {
+        $bank = MasterBank::get();
         $jenis = MasterJenisPengeluaran::get();
-        return view('transaksi.keluar.create', compact('jenis'));
+        return view('transaksi.keluar.create', compact('jenis', 'bank'));
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'Jenis' => 'required|string|max:255',
             'Tanggal' => 'required',
+            'SumberDana' => 'required',
         ]);
         $buktiBeliPath = null;
         if ($request->hasFile('BuktiBeli')) {
@@ -74,6 +77,7 @@ class TransaksiKeluarController extends Controller
             'Total' => preg_replace('/[^0-9]/', '', $request->GrandTotal),
             'Keterangan' => $request->Keterangan,
             'Tanggal' => $request->Tanggal,
+            'SumberDana' => $request->SumberDana,
             'BuktiBeli' => $fileName,
             'IdPetugas' => auth()->user()->id,
             'KodeKantor' => auth()->user()->KodeKantor,
@@ -95,6 +99,28 @@ class TransaksiKeluarController extends Controller
                 ]);
             }
         }
+
+        $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $request->SumberDana)
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('SaldoSetelah');
+
+        $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+        $nominalKeluar = preg_replace('/[^\d]/', '', $request->GrandTotal);
+        $saldoSetelah = (int) $saldoSebelumnya - (int) $nominalKeluar;
+
+        TransaksiKeuangan::create([
+            'Tanggal' => $request->Tanggal,
+            'Jenis' => 'OUT',
+            'Kategori' => 'TransaksiKeluar',
+            'Deskripsi' => 'Pengeluaran kas untuk transaksi keluar dengan nomor: ' . $header->Nomor,
+            'Nominal' => $nominalKeluar,
+            'NamaBank' => $request->SumberDana,
+            'RefType' => 'TransaksiKeluar',
+            'RefId' => $header->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreated' => auth()->user()->name,
+        ]);
 
         activity()
             ->causedBy(auth()->user()->id)
@@ -133,9 +159,10 @@ class TransaksiKeluarController extends Controller
     public function edit($id)
     {
         $id = decrypt($id);
+        $bank = MasterBank::get();
         $jenis = MasterJenisPengeluaran::get();
         $transaksiKeluar = TransaksiKeluar::with('getDetail')->find($id);
-        return view('transaksi.keluar.edit', compact('jenis', 'transaksiKeluar'));
+        return view('transaksi.keluar.edit', compact('jenis', 'transaksiKeluar', 'bank'));
     }
 
     public function update(Request $request, $id)
@@ -143,6 +170,7 @@ class TransaksiKeluarController extends Controller
         $request->validate([
             'Jenis' => 'required|string|max:255',
             'Tanggal' => 'required',
+            'SumberDana' => 'required',
         ]);
         $buktiBeliPath = null;
         if ($request->hasFile('BuktiBeli')) {
@@ -160,9 +188,10 @@ class TransaksiKeluarController extends Controller
             'Keterangan' => $request->Keterangan,
             'Tanggal' => $request->Tanggal,
             'BuktiBeli' => $fileName,
+            'SumberDana' => $request->SumberDana,
             'IdPetugas' => auth()->user()->id,
             'KodeKantor' => auth()->user()->KodeKantor,
-            'UserUpdate' => auth()->user()->name,
+            'UserUpdated' => auth()->user()->name,
         ]);
 
         TransaksiKeluarDetail::where('IdTransaksiKeluar', $transaksi->id)->delete();
@@ -184,13 +213,38 @@ class TransaksiKeluarController extends Controller
             }
         }
 
+        TransaksiKeuangan::where('RefType', 'TransaksiKeluar')
+            ->where('RefId', $transaksi->id)
+            ->delete();
+
+        $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $request->SumberDana)
+            ->orderBy('Tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->value('SaldoSetelah');
+
+        $saldoSebelumnya = $saldoSebelumnya ? preg_replace('/[^\d]/', '', $saldoSebelumnya) : 0;
+        $nominalKeluar = preg_replace('/[^\d]/', '', $request->GrandTotal);
+        $saldoSetelah = (int) $saldoSebelumnya - (int) $nominalKeluar;
+
+        TransaksiKeuangan::create([
+            'Tanggal' => $request->Tanggal,
+            'Jenis' => 'OUT',
+            'Kategori' => 'TransaksiKeluar',
+            'Deskripsi' => 'Pengeluaran kas untuk transaksi keluar dengan nomor: ' . $transaksi->Nomor,
+            'Nominal' => $nominalKeluar,
+            'NamaBank' => $request->SumberDana,
+            'RefType' => 'TransaksiKeluar',
+            'RefId' => $transaksi->id,
+            'SaldoSetelah' => $saldoSetelah,
+            'UserCreate' => auth()->user()->name,
+        ]);
+
         activity()
             ->causedBy(auth()->user()->id)
             ->withProperties(['ip' => request()->ip()])
             ->log('Memperbarui transaksi keluar: ' . $transaksi->Nomor);
 
         return redirect()->route('transaksi-keluar.index')->with('success', 'Transaksi keluar berhasil diperbarui.');
-        return redirect()->route('master-bank.index')->with('success', 'Master bank berhasil diperbarui.');
     }
 
     public function destroy($id)

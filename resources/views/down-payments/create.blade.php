@@ -74,20 +74,63 @@
                                 @enderror
                             </div>
                             <div class="col-md-6" id="bankPilihanContainer" style="display: none;">
-                                <label for="Bank" class="form-label"><strong>Pilih Bank</strong></label>
-                                <select name="Bank" id="Bank"
+                                <label for="NamaBank" class="form-label"><strong>Bank Tujuan</strong></label>
+                                <select name="NamaBank" id="Bank"
                                     class="form-control @error('Bank') is-invalid @enderror">
                                     <option value="">Pilih Bank</option>
                                     @foreach ($bank ?? [] as $b)
-                                        <option value="{{ $b->id }}" {{ old('Bank') == $b->id ? 'selected' : '' }}>
+                                        <option value="{{ $b->id }}"
+                                            {{ old('NamaBank') == $b->id ? 'selected' : '' }}>
                                             {{ $b->Nama }} - {{ $b->Rekening }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('Bank')
+                                @error('NamaBank')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- DARI BANK & NO REKENING (Visible only jika Transfer) -->
+                            <div class="col-md-6" id="dariBankContainer" style="display: none;">
+                                <label for="DariBank" class="form-label"><strong>Dari Bank</strong></label>
+                                <select name="DariBank" id="DariBank"
+                                    class="form-control @error('DariBank') is-invalid @enderror">
+                                    <option value="">Pilih Pilih Bank</option>
+                                    @foreach ($bank ?? [] as $b)
+                                        <option value="{{ $b->id }}"
+                                            {{ old('DariBank') == $b->id ? 'selected' : '' }}>
+                                            {{ $b->Nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('DariBank')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6" id="noRekeningContainer" style="display: none;">
+                                <label for="NoRekening" class="form-label"><strong>No. Rekening Pengirim</strong></label>
+                                <input type="text" name="NoRekening"
+                                    class="form-control @error('NoRekening') is-invalid @enderror" id="NoRekening"
+                                    placeholder="No. Rekening Pengirim" value="{{ old('NoRekening') }}">
+                                @error('NoRekening')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-12" id="buktiTfContainer" style="display: none;">
+                                <label for="BuktiTf" class="form-label"><strong>Upload Bukti Transfer</strong></label>
+                                <div id="dropzoneBuktiTf" class="dropzone-custom @error('BuktiTf') is-invalid @enderror"
+                                    style="border: 2px dashed #cccccc; border-radius: 6px; padding: 30px; text-align: center; cursor: pointer; background: #fcfcfc;">
+                                    <span id="dropzoneTextBuktiTf"><i class="fa fa-upload"></i> Drag & Drop Atau Klik Untuk
+                                        Mengunggah Bukti TF</span>
+                                    <input type="file" name="Bukti" id="BuktiTf" accept="image/*,.pdf"
+                                        style="display: none;">
+                                </div>
+                                <div id="buktiTfPreview" style="margin-top: 5px;"></div>
+                                @error('BuktiTf')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            {{-- End: Hanya tampil jika Transfer --}}
 
                             <div class="col-md-6">
                                 <label for="Penerima" class="form-label"><strong>Penerima</strong></label>
@@ -112,8 +155,8 @@
                                 <label for="TotalSetoran" class="form-label"><strong>Nominal Down Payment</strong></label>
                                 <input type="text" name="TotalSetoran"
                                     class="form-control @error('TotalSetoran') is-invalid @enderror" id="TotalSetoran"
-                                    placeholder="Nominal Down Payment" value="{{ old('TotalSetoran') }}" autocomplete="off"
-                                    min="0">
+                                    placeholder="Nominal Down Payment" value="{{ old('TotalSetoran') }}"
+                                    autocomplete="off" min="0">
                                 @error('TotalSetoran')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
@@ -127,9 +170,14 @@
                                 @error('SisaBayar')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
-                                {{-- Tambahkan input hidden untuk nilai aslinya agar ikut ke controller --}}
                                 <input type="hidden" id="SisaBayarRaw" name="SisaBayarRaw" value="">
                             </div>
+
+                            {{-- Input Bukti drag and drop --}}
+
+
+
+                            {{-- END drag and drop --}}
 
                             <div class="col-md-12 mt-4">
                                 <div class="row">
@@ -213,22 +261,98 @@
         document.addEventListener('DOMContentLoaded', function() {
             const jenisPembayaran = document.getElementById('JenisPembayaran');
             const bankPilihanContainer = document.getElementById('bankPilihanContainer');
+            const dariBankContainer = document.getElementById('dariBankContainer');
+            const noRekeningContainer = document.getElementById('noRekeningContainer');
+            const buktiTfContainer = document.getElementById('buktiTfContainer');
 
-            function toggleBankPilihan() {
+            function toggleTransferFields() {
                 if (jenisPembayaran.value === 'Transfer') {
                     bankPilihanContainer.style.display = 'block';
+                    dariBankContainer.style.display = 'block';
+                    noRekeningContainer.style.display = 'block';
+                    buktiTfContainer.style.display = 'block';
                 } else {
                     bankPilihanContainer.style.display = 'none';
+                    dariBankContainer.style.display = 'none';
+                    noRekeningContainer.style.display = 'none';
+                    buktiTfContainer.style.display = 'none';
                 }
             }
-            jenisPembayaran.addEventListener('change', toggleBankPilihan);
-            toggleBankPilihan();
+            jenisPembayaran.addEventListener('change', toggleTransferFields);
+            toggleTransferFields();
+
+            // Dropzone for BuktiTF
+            const dropzone = document.getElementById('dropzoneBuktiTf');
+            const fileInput = document.getElementById('BuktiTf');
+            const dropzoneText = document.getElementById('dropzoneTextBuktiTf');
+            const preview = document.getElementById('buktiTfPreview');
+
+            function showPreview(file) {
+                preview.innerHTML = '';
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.style.maxWidth = '140px';
+                    img.style.maxHeight = '140px';
+                    img.className = "mt-2";
+                    img.file = file;
+                    preview.appendChild(img);
+
+                    const reader = new FileReader();
+                    reader.onload = (function(aImg) {
+                        return function(e) {
+                            aImg.src = e.target.result;
+                        };
+                    })(img);
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(file);
+                    a.target = "_blank";
+                    a.textContent = "Lihat Bukti Transfer (PDF)";
+                    preview.appendChild(a);
+                } else {
+                    preview.textContent = "Unggah file gambar atau PDF saja.";
+                }
+            }
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', function(e) {
+                    fileInput.click();
+                });
+
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#007bff';
+                });
+
+                dropzone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#cccccc';
+                });
+
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#cccccc';
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        showPreview(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        showPreview(this.files[0]);
+                    }
+                });
+            }
         });
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const totalSetoranInput = document.getElementById('TotalSetoran');
-            // SisaBayarBooking dari booking, yaitu Sisa Bayar dari Booking
             const sisaBayarBookingInput = document.getElementById('SisaBayarBooking');
             const sisaBayarInput = document.getElementById('SisaBayar');
             const sisaBayarRawInput = document.getElementById('SisaBayarRaw');
@@ -239,28 +363,21 @@
                     sisa = split[0].length % 3,
                     rupiah = split[0].substr(0, sisa),
                     ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
                 if (ribuan) {
                     rupiah += (sisa ? '.' : '') + ribuan.join('.');
                 }
-
                 rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
                 return prefix === undefined ? rupiah : (rupiah ? prefix + ' ' + rupiah : '');
             }
 
-            // Ambil nilai numeric dari string 'Rp xx.xxx'
             function parseRupiah(str) {
                 if (!str) return 0;
                 return parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
             }
 
-            // Update otomatis Sisa Bayar jika TotalSetoran diubah
             function updateSisaBayar() {
-                // Ambil Sisa Bayar dari Booking
                 const sisaBookingValue = parseRupiah(sisaBayarBookingInput.value);
-                // Ambil nilai DP (TotalSetoran)
                 const totalSetoranValue = parseRupiah(totalSetoranInput.value);
-
                 let sisa = sisaBookingValue - totalSetoranValue;
                 if (sisa < 0) sisa = 0;
                 sisaBayarInput.value = formatRupiah(sisa.toString(), 'Rp');
@@ -272,15 +389,75 @@
                 let newValue = formatRupiah(value, 'Rp');
                 this.value = newValue;
                 this.setSelectionRange(newValue.length, newValue.length);
-
                 updateSisaBayar();
             });
 
-            // On page load, format old value, dan set Sisa Bayar
             if (totalSetoranInput.value) {
                 totalSetoranInput.value = formatRupiah(totalSetoranInput.value, 'Rp');
             }
             updateSisaBayar();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('buktiDropArea');
+            const buktiInput = document.getElementById('Bukti');
+            const preview = document.getElementById('buktiPreview');
+            const dropAreaText = document.getElementById('buktiDropAreaText');
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.add('border-primary');
+                    dropArea.classList.remove('border-secondary');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.remove('border-primary');
+                    dropArea.classList.add('border-secondary');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    buktiInput.files = e.dataTransfer.files;
+                    handlePreview(e.dataTransfer.files[0]);
+                }
+            });
+
+            dropArea.addEventListener('click', () => {
+                buktiInput.click();
+            });
+            buktiInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    handlePreview(this.files[0]);
+                }
+            });
+
+            function handlePreview(file) {
+                preview.innerHTML = '';
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML = '<img src="' + e.target.result +
+                            '" alt="Preview" class="img-thumbnail mt-2" style="max-width: 140px; max-height: 100px;"> <div class="mt-1 fst-italic small">' +
+                            file.name + '</div>';
+                    };
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    preview.innerHTML = '<i class="fa fa-file-pdf fa-3x text-danger"></i><br><span>' + file.name +
+                        '</span>';
+                } else {
+                    preview.innerHTML = '<span>' + file.name + '</span>';
+                }
+                dropAreaText.style.display = 'none';
+            }
         });
     </script>
 @endpush

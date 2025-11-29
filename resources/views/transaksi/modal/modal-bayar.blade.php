@@ -20,7 +20,6 @@
                                     name="DibayarOleh" required>
                             </div>
                         </div>
-
                         <!-- INFO REKENING PEMBAYAR -->
                         <div class="col-md-6 mb-3">
                             <label for="dari_bank" class="form-label">Rekening Pembayar - Nama Bank</label>
@@ -29,17 +28,11 @@
                                 <select class="form-select select2" id="dari_bank" name="DariBank" style="width: 100%;"
                                     data-placeholder="Pilih Nama Bank Pembayar">
                                     <option value="">Pilih Nama Bank Pembayar</option>
-                                    <option value="BCA">BCA</option>
-                                    <option value="Mandiri">Mandiri</option>
-                                    <option value="BRI">BRI</option>
-                                    <option value="BNI">BNI</option>
-                                    <option value="CIMB">CIMB</option>
-                                    <option value="Danamon">Danamon</option>
-                                    <option value="Permata">Permata</option>
-                                    <option value="BTN">BTN</option>
-                                    <option value="Maybank">Maybank</option>
-                                    <option value="OCBC">OCBC</option>
-                                    <!-- Tambahkan daftar bank lain sesuai kebutuhan -->
+                                    @if (isset($bank) && $bank->count())
+                                        @foreach ($bank as $b)
+                                            <option value="{{ $b->id }}">{{ $b->Nama }}</option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
                         </div>
@@ -78,19 +71,17 @@
                                     <div class="input-group">
                                         <span class="input-group-text"><i data-feather="credit-card"></i></span>
                                         <select class="form-select select2" name="NamaBank" id="nama_bank_select"
-                                            style="width: 100%;" data-placeholder="Pilih Nama Bank Penerima">
+                                            style="width: 100%;" data-placeholder="Pilih Nama Bank Penerima"
+                                            onchange="updateNoRekeningPenerima()">
                                             <option value="">Pilih Nama Bank Penerima</option>
-                                            <option value="BCA">BCA</option>
-                                            <option value="Mandiri">Mandiri</option>
-                                            <option value="BRI">BRI</option>
-                                            <option value="BNI">BNI</option>
-                                            <option value="CIMB">CIMB</option>
-                                            <option value="Danamon">Danamon</option>
-                                            <option value="Permata">Permata</option>
-                                            <option value="BTN">BTN</option>
-                                            <option value="Maybank">Maybank</option>
-                                            <option value="OCBC">OCBC</option>
-                                            <!-- Tambahkan daftar bank lain sesuai kebutuhan -->
+                                            @if (isset($bank) && $bank->count())
+                                                @foreach ($bank as $b)
+                                                    <option value="{{ $b->id }}"
+                                                        data-norek="{{ $b->Rekening ?? '' }}">
+                                                        {{ $b->Nama }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
                                         </select>
                                     </div>
                                 </div>
@@ -99,19 +90,12 @@
                                         <span class="input-group-text"><i data-feather="hash"></i></span>
                                         <input type="text" class="form-control"
                                             placeholder="No. Rekening Penerima" name="NoRekeningPenerima"
-                                            id="no_rekening_penerima">
+                                            id="no_rekening_penerima" readonly>
                                     </div>
                                 </div>
+
                             </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    if (window.jQuery && $('.select2').length) {
-                                        $('.select2').select2({
-                                            dropdownParent: $('#modalBayar') // ganti dengan id modal jika perlu
-                                        });
-                                    }
-                                });
-                            </script>
+
                         </div>
                         <!-- END INFO REKENING PENERIMA -->
 
@@ -127,19 +111,38 @@
                 </div>
             </div>
         </form>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.btn-bayar').forEach(function(btn) {
-                    btn.addEventListener('click', function(event) {
-                        let cicilanKe = btn.getAttribute('data-cicilanke') || '';
-                        let besarCicilan = btn.getAttribute('data-besarcicilan') || '';
-                        let elCicilanKe = document.getElementById('input-cicilan-ke');
-                        let elBesarCicilan = document.getElementById('input-besar-cicilan');
-                        if (elCicilanKe) elCicilanKe.value = cicilanKe;
-                        if (elBesarCicilan) elBesarCicilan.value = besarCicilan;
-                    });
-                });
-            });
-        </script>
+
     </div>
 </div>
+@push('js')
+    <script>
+        function updateNoRekeningPenerima() {
+            var select = document.getElementById('nama_bank_select');
+            var input = document.getElementById('no_rekening_penerima');
+            var selectedOption = select.options[select.selectedIndex];
+            var norek = selectedOption.getAttribute('data-norek') || '';
+            input.value = norek;
+        }
+        // initialize on page load in case select2's default selection
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNoRekeningPenerima();
+            if (window.jQuery) {
+                $('#nama_bank_select').on('change', updateNoRekeningPenerima);
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-bayar').forEach(function(btn) {
+                btn.addEventListener('click', function(event) {
+                    let cicilanKe = btn.getAttribute('data-cicilanke') || '';
+                    let besarCicilan = btn.getAttribute('data-besarcicilan') || '';
+                    let elCicilanKe = document.getElementById('input-cicilan-ke');
+                    let elBesarCicilan = document.getElementById('input-besar-cicilan');
+                    if (elCicilanKe) elCicilanKe.value = cicilanKe;
+                    if (elBesarCicilan) elBesarCicilan.value = besarCicilan;
+                });
+            });
+        });
+    </script>
+@endpush

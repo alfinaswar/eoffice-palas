@@ -56,6 +56,8 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <!-- BANK TUJUAN (Visible only jika Transfer) -->
                             <div class="col-md-6" id="bankPilihanContainer" style="display: none;">
                                 <label for="Bank" class="form-label"><strong>Pilih Bank</strong></label>
                                 <select name="Bank" id="Bank"
@@ -68,6 +70,46 @@
                                     @endforeach
                                 </select>
                                 @error('Bank')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- DARI BANK & NO REKENING (Visible only jika Transfer) -->
+                            <div class="col-md-6" id="dariBankContainer" style="display: none;">
+                                <label for="DariBank" class="form-label"><strong>Dari Bank</strong></label>
+                                <select name="DariBank" id="DariBank"
+                                    class="form-control @error('DariBank') is-invalid @enderror">
+                                    <option value="">Pilih Pilih Bank</option>
+                                    @foreach ($bank ?? [] as $b)
+                                        <option value="{{ $b->id }}" {{ old('Bank') == $b->id ? 'selected' : '' }}>
+                                            {{ $b->Nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('DariBank')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6" id="noRekeningContainer" style="display: none;">
+                                <label for="NoRekening" class="form-label"><strong>No. Rekening Pengirim</strong></label>
+                                <input type="text" name="NoRekening"
+                                    class="form-control @error('NoRekening') is-invalid @enderror" id="NoRekening"
+                                    placeholder="No. Rekening Pengirim" value="{{ old('NoRekening') }}">
+                                @error('NoRekening')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-12" id="buktiTfContainer" style="display: none;">
+                                <label for="BuktiTf" class="form-label"><strong>Upload Bukti Transfer</strong></label>
+                                <div id="dropzoneBuktiTf" class="dropzone-custom @error('BuktiTf') is-invalid @enderror"
+                                    style="border: 2px dashed #cccccc; border-radius: 6px; padding: 30px; text-align: center; cursor: pointer; background: #fcfcfc;">
+                                    <span id="dropzoneTextBuktiTf"><i class="fa fa-upload"></i> Drag & Drop Atau Klik Untuk
+                                        Mengunggah Bukti TF</span>
+                                    <input type="file" name="Bukti" id="BuktiTf" accept="image/*,.pdf"
+                                        style="display: none;">
+                                </div>
+                                <div id="buktiTfPreview" style="margin-top: 5px;"></div>
+                                @error('BuktiTf')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -191,16 +233,93 @@
         document.addEventListener('DOMContentLoaded', function() {
             const jenisPembayaran = document.getElementById('JenisPembayaran');
             const bankPilihanContainer = document.getElementById('bankPilihanContainer');
+            const dariBankContainer = document.getElementById('dariBankContainer');
+            const noRekeningContainer = document.getElementById('noRekeningContainer');
+            const buktiTfContainer = document.getElementById('buktiTfContainer');
 
-            function toggleBankPilihan() {
+            function toggleTransferFields() {
                 if (jenisPembayaran.value === 'Transfer') {
                     bankPilihanContainer.style.display = 'block';
+                    dariBankContainer.style.display = 'block';
+                    noRekeningContainer.style.display = 'block';
+                    buktiTfContainer.style.display = 'block';
                 } else {
                     bankPilihanContainer.style.display = 'none';
+                    dariBankContainer.style.display = 'none';
+                    noRekeningContainer.style.display = 'none';
+                    buktiTfContainer.style.display = 'none';
                 }
             }
-            jenisPembayaran.addEventListener('change', toggleBankPilihan);
-            toggleBankPilihan();
+            jenisPembayaran.addEventListener('change', toggleTransferFields);
+            toggleTransferFields();
+
+            // Dropzone for BuktiTF
+            const dropzone = document.getElementById('dropzoneBuktiTf');
+            const fileInput = document.getElementById('BuktiTf');
+            const dropzoneText = document.getElementById('dropzoneTextBuktiTf');
+            const preview = document.getElementById('buktiTfPreview');
+
+            function showPreview(file) {
+                preview.innerHTML = '';
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.style.maxWidth = '140px';
+                    img.style.maxHeight = '140px';
+                    img.className = "mt-2";
+                    img.file = file;
+                    preview.appendChild(img);
+
+                    const reader = new FileReader();
+                    reader.onload = (function(aImg) {
+                        return function(e) {
+                            aImg.src = e.target.result;
+                        };
+                    })(img);
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(file);
+                    a.target = "_blank";
+                    a.textContent = "Lihat Bukti Transfer (PDF)";
+                    preview.appendChild(a);
+                } else {
+                    preview.textContent = "Unggah file gambar atau PDF saja.";
+                }
+            }
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', function(e) {
+                    fileInput.click();
+                });
+
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#007bff';
+                });
+
+                dropzone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#cccccc';
+                });
+
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.style.borderColor = '#cccccc';
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        showPreview(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        showPreview(this.files[0]);
+                    }
+                });
+            }
         });
     </script>
     <script>

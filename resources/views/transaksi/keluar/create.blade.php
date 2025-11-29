@@ -56,6 +56,22 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+                            <div class="col-md-4">
+                                <label for="SumberDana" class="form-label fw-semibold">Sumber Dana</label>
+                                <select name="SumberDana" id="SumberDana"
+                                    class="select2 form-control @error('SumberDana') is-invalid @enderror">
+                                    <option value="">Pilih Sumber Dana</option>
+                                    @foreach ($bank as $option)
+                                        <option value="{{ $option->id }}"
+                                            {{ old('SumberDana') == $option->id ? 'selected' : '' }}>
+                                            {{ $option->Nama }} - {{ $option->Rekening }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('SumberDana')
+                                    <div class="text-danger mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
                             <div class="col-md-6">
                                 <label for="Keterangan" class="form-label fw-semibold">Keterangan</label>
                                 <textarea name="Keterangan" id="Keterangan" rows="3"
@@ -90,83 +106,8 @@
                                     <div class="text-danger mt-1 w-100 text-center">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const dz = document.getElementById('dropzone-bukti-beli');
-                                    const input = dz.querySelector('input[type="file"]');
-                                    const dzMsg = dz.querySelector('#dz-message');
-                                    const preview = dz.querySelector('#bukti-preview');
-                                    const btnPreview = dz.querySelector('#btn-preview-bukti');
-                                    let currentFileUrl = null;
 
-                                    dz.addEventListener('click', function() {
-                                        input.click();
-                                    });
 
-                                    dz.addEventListener('dragover', function(e) {
-                                        e.preventDefault();
-                                        dz.classList.add('border-primary');
-                                    });
-
-                                    dz.addEventListener('dragleave', function(e) {
-                                        e.preventDefault();
-                                        dz.classList.remove('border-primary');
-                                    });
-
-                                    dz.addEventListener('drop', function(e) {
-                                        e.preventDefault();
-                                        dz.classList.remove('border-primary');
-                                        const files = e.dataTransfer.files;
-                                        if (files.length > 0) {
-                                            input.files = files;
-                                            showPreview(files[0]);
-                                        }
-                                    });
-
-                                    input.addEventListener('change', function() {
-                                        if (input.files && input.files[0]) {
-                                            showPreview(input.files[0]);
-                                        }
-                                    });
-
-                                    function showPreview(file) {
-                                        preview.innerHTML = '';
-                                        btnPreview.classList.add('d-none');
-                                        if (currentFileUrl) {
-                                            URL.revokeObjectURL(currentFileUrl);
-                                            currentFileUrl = null;
-                                        }
-                                        let ext = file.name.split('.').pop().toLowerCase();
-                                        let url = URL.createObjectURL(file);
-                                        currentFileUrl = url;
-
-                                        let html = '';
-                                        if (['jpg', 'jpeg', 'png'].includes(ext)) {
-                                            html =
-                                                `<img src="${url}" alt="Preview" class="img-fluid rounded border mx-auto d-block" style="max-width:200px;max-height:100px; display:block; margin-left:auto; margin-right:auto;" />`;
-                                        } else if (['pdf'].includes(ext)) {
-                                            html =
-                                                `<div class="text-center"><i class="fa fa-file-pdf-o fa-3x text-danger"></i><br><span class="small">${file.name}</span></div>`;
-                                        } else if (['doc', 'docx', 'xls', 'xlsx'].includes(ext)) {
-                                            html =
-                                                `<div class="text-center"><i class="fa fa-file-word-o fa-3x text-primary"></i><br><span class="small">${file.name}</span></div>`;
-                                        } else {
-                                            html =
-                                                `<div class="text-center"><i class="fa fa-file-o fa-3x"></i><br><span class="small">${file.name}</span></div>`;
-                                        }
-                                        preview.innerHTML = html;
-                                        btnPreview.classList.remove('d-none');
-                                    }
-
-                                    btnPreview.addEventListener('click', function(e) {
-                                        e.stopPropagation();
-                                        if (currentFileUrl) {
-                                            window.open(currentFileUrl, '_blank');
-                                        }
-                                    });
-                                });
-                            </script>
-                            </script>
                         </div>
 
                         <hr class="mb-4">
@@ -195,12 +136,12 @@
                                                 class="form-control jumlah-input text-end" value="1" required>
                                         </td>
                                         <td>
-                                            <input type="text" name="Harga[]" class="form-control harga-input text-end"
-                                                value="0" required>
+                                            <input type="text" name="Harga[]"
+                                                class="form-control harga-input text-end" value="0" required>
                                         </td>
                                         <td>
-                                            <input type="text" name="Total[]" class="form-control total-input text-end"
-                                                value="0" readonly>
+                                            <input type="text" name="Total[]"
+                                                class="form-control total-input text-end" value="0" readonly>
                                         </td>
                                         <td>
                                             <input type="text" name="KeteranganDetail[]" class="form-control"
@@ -252,6 +193,8 @@
     </div>
 
     <!-- Script dinamis -->
+@endsection
+@push('js')
     <script>
         // Simpan nama user di JavaScript dari blade
         const currentUserName = @json($currentUserName);
@@ -419,4 +362,80 @@
             refreshGrandTotal();
         });
     </script>
-@endsection
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dz = document.getElementById('dropzone-bukti-beli');
+            const input = dz.querySelector('input[type="file"]');
+            const dzMsg = dz.querySelector('#dz-message');
+            const preview = dz.querySelector('#bukti-preview');
+            const btnPreview = dz.querySelector('#btn-preview-bukti');
+            let currentFileUrl = null;
+
+            dz.addEventListener('click', function() {
+                input.click();
+            });
+
+            dz.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dz.classList.add('border-primary');
+            });
+
+            dz.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dz.classList.remove('border-primary');
+            });
+
+            dz.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dz.classList.remove('border-primary');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    showPreview(files[0]);
+                }
+            });
+
+            input.addEventListener('change', function() {
+                if (input.files && input.files[0]) {
+                    showPreview(input.files[0]);
+                }
+            });
+
+            function showPreview(file) {
+                preview.innerHTML = '';
+                btnPreview.classList.add('d-none');
+                if (currentFileUrl) {
+                    URL.revokeObjectURL(currentFileUrl);
+                    currentFileUrl = null;
+                }
+                let ext = file.name.split('.').pop().toLowerCase();
+                let url = URL.createObjectURL(file);
+                currentFileUrl = url;
+
+                let html = '';
+                if (['jpg', 'jpeg', 'png'].includes(ext)) {
+                    html =
+                        `<img src="${url}" alt="Preview" class="img-fluid rounded border mx-auto d-block" style="max-width:200px;max-height:100px; display:block; margin-left:auto; margin-right:auto;" />`;
+                } else if (['pdf'].includes(ext)) {
+                    html =
+                        `<div class="text-center"><i class="fa fa-file-pdf-o fa-3x text-danger"></i><br><span class="small">${file.name}</span></div>`;
+                } else if (['doc', 'docx', 'xls', 'xlsx'].includes(ext)) {
+                    html =
+                        `<div class="text-center"><i class="fa fa-file-word-o fa-3x text-primary"></i><br><span class="small">${file.name}</span></div>`;
+                } else {
+                    html =
+                        `<div class="text-center"><i class="fa fa-file-o fa-3x"></i><br><span class="small">${file.name}</span></div>`;
+                }
+                preview.innerHTML = html;
+                btnPreview.classList.remove('d-none');
+            }
+
+            btnPreview.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (currentFileUrl) {
+                    window.open(currentFileUrl, '_blank');
+                }
+            });
+        });
+    </script>
+@endpush

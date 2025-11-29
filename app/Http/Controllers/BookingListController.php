@@ -99,6 +99,14 @@ class BookingListController extends Controller
         ]);
 
         $nomorBooking = $this->generateNomorBooking();
+        if ($request->hasFile('Bukti')) {
+            $file = $request->file('Bukti');
+            $filename = 'bukti_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('bukti-booking', $filename, 'public');
+            $data['Bukti'] = $path;
+        } else {
+            $data['Bukti'] = null;
+        }
         $booking = BookingList::create([
             'IdPenawaran' => $data['IdPenawaran'],
             'Nomor' => $nomorBooking,
@@ -109,10 +117,13 @@ class BookingListController extends Controller
             'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar']),
             'JenisPembayaran' => $data['JenisPembayaran'],
             'NamaBank' => $data['Bank'],
+            'DariBank' => $data['DariBank'] ?? null,
+            'NoRekening' => $data['NoRekening'] ?? null,
             'Keterangan' => $data['Keterangan'] ?? null,
             'Penerima' => auth()->user()->id,
             'DiterimaPada' => now(),
             'Penyetor' => $data['Penyetor'],
+            'KodeKantor' => auth()->user()->KodeKantor,
         ]);
 
         $saldoSebelumnya = TransaksiKeuangan::where('NamaBank', $data['Bank'])
@@ -224,8 +235,7 @@ class BookingListController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->all();
-
-        // Validasi data edit
+        // dd($data);
         $validatedData = $request->validate([
             'NamaPelangganPenawaran' => 'required',
             'Tanggal' => 'required',
@@ -239,6 +249,14 @@ class BookingListController extends Controller
         $bookingList = BookingList::findOrFail($id);
 
         // Simpan perubahan booking
+        if ($request->hasFile('Bukti')) {
+            $file = $request->file('Bukti');
+            $filename = 'bukti_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('bukti-booking', $filename, 'public');
+            $data['Bukti'] = $path;
+        } else {
+            $data['Bukti'] = null;
+        }
         $bookingList->update([
             'NamaPelanggan' => $data['NamaPelangganPenawaran'],
             'Tanggal' => $data['Tanggal'],
@@ -246,6 +264,8 @@ class BookingListController extends Controller
             'SisaBayar' => preg_replace('/[^\d]/', '', $data['SisaBayar'] ?? 0),
             'JenisPembayaran' => $data['JenisPembayaran'],
             'NamaBank' => $data['Bank'] ?? null,
+            'DariBank' => $data['DariBank'] ?? null,
+            'NoRekening' => $data['NoRekening'] ?? null,
             'Keterangan' => $data['Keterangan'] ?? null,
             'Penerima' => auth()->user()->id,
             'DiterimaPada' => now(),
