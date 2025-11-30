@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('transaksi_keuangans', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('KodeKantor', 200)->nullable();
             $table->date('Tanggal')->nullable();
             $table->enum('Jenis', ['IN', 'OUT'])->nullable();
             $table->string('Kategori', 200)->nullable();

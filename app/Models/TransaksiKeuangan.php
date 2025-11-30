@@ -22,4 +22,9 @@ class TransaksiKeuangan extends Model
      * @var array
      */
     protected $guarded = ['id'];
+
+    public function getNamaBank()
+    {
+        return $this->belongsTo(MasterBank::class, 'NamaBank', 'id');
+    }
 }

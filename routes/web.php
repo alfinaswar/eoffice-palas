@@ -194,4 +194,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/', [MenuLaporanController::class, 'Penjualan'])->name('laporan-penjualan.index');
         Route::post('/store', [MenuLaporanController::class, 'DownloadPenjualan'])->name('laporan-penjualan.download');
     });
+    Route::prefix('laporan/mutasi-dana')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'MutasiDana'])->name('laporan-mutasi.index');
+        Route::post('/store', [MenuLaporanController::class, 'DownloadMutasiDana'])->name('laporan-mutasi.download');
+    });
 });

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Exports\OmsetExport;
+use App\Models\MasterBank;
 use App\Models\MasterProjek;
 use App\Models\Produk;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiKeluar;
+use App\Models\TransaksiKeuangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Laraindo\RupiahFormat;
@@ -37,9 +39,10 @@ class MenuLaporanController extends Controller
             ];
 
             // Ambil omset per bulan
-            $dataOmset = TransaksiDetail::selectRaw('MONTH(DibayarPada) as BulanNum, SUM(TotalPembayaran) as TotalOmset')
-                ->where('Status', 'Lunas')
-                ->whereYear('DibayarPada', $year)
+            // Ambil data omset/masuk dari TransaksiKeuangan (Jenis IN) dan keluar dari TransaksiKeuangan (Jenis OUT) per bulan
+            $dataOmset = TransaksiKeuangan::selectRaw('MONTH(Tanggal) as BulanNum, SUM(Nominal) as TotalOmset')
+                ->where('Jenis', 'IN')
+                ->whereYear('Tanggal', $year)
                 ->groupBy('BulanNum')
                 ->orderBy('BulanNum', 'asc')
                 ->get()
@@ -47,7 +50,8 @@ class MenuLaporanController extends Controller
                     return str_pad($item->BulanNum, 2, '0', STR_PAD_LEFT);
                 });
 
-            $dataKeluar = TransaksiKeluar::selectRaw('MONTH(Tanggal) as BulanNum, SUM(Total) as TotalKeluar')
+            $dataKeluar = TransaksiKeuangan::selectRaw('MONTH(Tanggal) as BulanNum, SUM(Nominal) as TotalKeluar')
+                ->where('Jenis', 'OUT')
                 ->whereYear('Tanggal', $year)
                 ->groupBy('BulanNum')
                 ->orderBy('BulanNum', 'asc')
@@ -217,7 +221,129 @@ class MenuLaporanController extends Controller
             $pdf = Pdf::loadView('laporan.penjualan.export', [
                 'data' => $data,
             ])->setPaper('a4', 'landscape');
-            return $pdf->stream("Laporan Penjualan.pdf");
+            return $pdf->stream('Laporan Penjualan.pdf');
+        } else {
+            return back()->with('error', 'Format export tidak dikenali.');
+        }
+    }
+
+    // Laporan mutasi dana
+    public function MutasiDana(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = TransaksiKeuangan::with('getNamaBank')->latest();
+            if ($request->filled('tahun')) {
+                $tahun = $request->input('tahun');
+                $query->whereYear('Tanggal', $tahun);
+            }
+            if ($request->filled('bulan')) {
+                $bulan = $request->input('bulan');
+                $query->whereMonth('Tanggal', $bulan);
+            }
+            if ($request->filled('nama_bank')) {
+                $namaBank = $request->input('nama_bank');
+                $query->where('NamaBank', $namaBank);
+            }
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('NamaBank', function ($row) {
+                    return $row->getNamaBank ? $row->getNamaBank->Nama : '-';
+                })
+                ->editColumn('Nominal', function ($row) {
+                    return RupiahFormat::currency($row->Nominal ?? 0);
+                })
+                ->editColumn('SaldoSetelah', function ($row) {
+                    return RupiahFormat::currency($row->SaldoSetelah ?? 0);
+                })
+                ->make(true);
+        }
+        $Bank = MasterBank::get();
+        return view('laporan.mutasi-dana.index', compact('Bank'));
+    }
+
+    public function DownloadMutasiDana(Request $request)
+    {
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+        $namaBankFilter = $request->input('nama_bank_filter');
+        $format = $request->input('format', 'excel');
+
+        if (!$tanggalAwal || !$tanggalAkhir) {
+            return back()->with('error', 'Tanggal awal dan akhir harus diisi.');
+        }
+
+        $ambilSaldoAwal = function ($bankId, $tanggalAwal) {
+            $lastTransaksi = TransaksiKeuangan::where('NamaBank', $bankId)
+                ->whereDate('Tanggal', '<', $tanggalAwal)
+                ->orderBy('Tanggal', 'desc')
+                ->orderBy('id', 'desc')
+                ->first();
+            return $lastTransaksi ? $lastTransaksi->SaldoSetelah : 0;  // 0 jika belum ada transaksi sebelumnya
+        };
+
+        if (!empty($namaBankFilter) && $namaBankFilter !== 'semua') {
+            $query = TransaksiKeuangan::with('getNamaBank')
+                ->whereDate('Tanggal', '>=', $tanggalAwal)
+                ->whereDate('Tanggal', '<=', $tanggalAkhir)
+                ->where('NamaBank', $namaBankFilter);
+
+            $data = $query->get();
+
+            $saldo_awal = $ambilSaldoAwal($namaBankFilter, $tanggalAwal);
+        } else {
+            $banks = MasterBank::all()->keyBy('id');
+            $result = [];
+            $saldo_awal_per_bank = [];
+
+            foreach ($banks as $bankId => $bank) {
+                $query = TransaksiKeuangan::with('getNamaBank')
+                    ->whereDate('Tanggal', '>=', $tanggalAwal)
+                    ->whereDate('Tanggal', '<=', $tanggalAkhir)
+                    ->where('NamaBank', $bankId);
+
+                $bankTransaksi = $query->get();
+                $saldoAwal = $ambilSaldoAwal($bankId, $tanggalAwal);
+
+                if ($bankTransaksi->count() > 0) {
+                    $result[] = [
+                        'bank' => $bank,
+                        'transaksi' => $bankTransaksi,
+                        'saldo_awal' => $saldoAwal,
+                    ];
+                }
+                $saldo_awal_per_bank[$bankId] = $saldoAwal;
+            }
+            $data = $result;
+        }
+
+        if ($format == 'excel') {
+            if (!empty($namaBankFilter) && $namaBankFilter !== 'semua') {
+                $fileName = "Laporan_Mutasi_Dana_Bank_{$namaBankFilter}_{$tanggalAwal}_{$tanggalAkhir}.xlsx";
+                // return Excel::download(new \App\Exports\MutasiDanaExport($data, $tanggalAwal, $tanggalAkhir, $namaBankFilter, $saldo_awal), $fileName);
+            } else {
+                $fileName = "Laporan_Mutasi_Dana_SemuaBank_{$tanggalAwal}_{$tanggalAkhir}.xlsx";
+                // return Excel::download(new \App\Exports\MutasiDanaExport($data, $tanggalAwal, $tanggalAkhir, 'semua', $saldo_awal_per_bank), $fileName);
+            }
+        } elseif ($format == 'pdf') {
+            if (!empty($namaBankFilter) && $namaBankFilter !== 'semua') {
+                $pdf = Pdf::loadView('laporan.mutasi-dana.export', [
+                    'data' => $data,
+                    'tanggal_awal' => $tanggalAwal,
+                    'tanggal_akhir' => $tanggalAkhir,
+                    'nama_bank' => $namaBankFilter,
+                    'saldo_awal' => isset($saldo_awal) ? $saldo_awal : 0,
+                ])->setPaper('a4', 'portrait');
+                return $pdf->stream("Laporan_Mutasi_Dana_{$namaBankFilter}_{$tanggalAwal}_{$tanggalAkhir}.pdf");
+            } else {
+                $pdf = Pdf::loadView('laporan.mutasi-dana.export-semua', [
+                    'data' => $data,
+                    'tanggal_awal' => $tanggalAwal,
+                    'tanggal_akhir' => $tanggalAkhir,
+                    'saldo_awal_per_bank' => isset($saldo_awal_per_bank) ? $saldo_awal_per_bank : [],
+                ])->setPaper('a4', 'portrait');
+                return $pdf->stream("Laporan_Mutasi_Dana_SemuaBank_{$tanggalAwal}_{$tanggalAkhir}.pdf");
+            }
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }

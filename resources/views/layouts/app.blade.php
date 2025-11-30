@@ -220,6 +220,12 @@
                                     <span>Penjualan</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('laporan-mutasi.index') }}">
+                                    <i data-feather="file-text"></i>
+                                    <span>Mutasi Dana</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     <li class="submenu-open">
