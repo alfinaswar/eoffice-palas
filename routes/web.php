@@ -148,6 +148,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/create/{id}', [BookingListController::class, 'create'])->name('booking-list.create');
         Route::post('/store', [BookingListController::class, 'store'])->name('booking-list.store');
         Route::get('/edit/{id}', [BookingListController::class, 'edit'])->name('booking-list.edit');
+        Route::POST('/cencel-order/{id}', [BookingListController::class, 'cancelOrder'])->name('booking-list.cancel');
         Route::get('/cetak-bukti-pembayaran/{id}', [BookingListController::class, 'PrintKwitansi'])->name('booking-list.print');
         Route::put('/update/{id}', [BookingListController::class, 'update'])->name('booking-list.update');
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');

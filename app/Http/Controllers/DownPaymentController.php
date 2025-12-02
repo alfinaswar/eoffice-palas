@@ -25,9 +25,28 @@ class DownPaymentController extends Controller
                 ->addColumn('action', function ($row) {
                     $encryptedId = encrypt($row->id);
                     return '
-                        <a href="' . route('dp.edit', $encryptedId) . '" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="' . route('dp.print', $encryptedId) . '" class="btn btn-sm btn-primary" target="_blank">Cetak Kwitansi</a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="' . $encryptedId . '">Hapus</button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cogs me-1"></i> Aksi
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="' . route('dp.edit', $encryptedId) . '">
+                                        <i class="fa fa-edit me-2"></i> Edit
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="' . route('dp.print', $encryptedId) . '" target="_blank">
+                                        <i class="fa fa-print me-2"></i> Cetak Kwitansi
+                                    </a>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item btn-delete" data-id="' . $encryptedId . '" type="button">
+                                        <i class="fa fa-trash me-2"></i> Hapus
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     ';
                 })
                 ->editColumn('Total', function ($row) {
@@ -48,7 +67,7 @@ class DownPaymentController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        $booking = BookingList::get();
+        $booking = BookingList::whereDoesntHave('getDp')->latest()->get();
         return view('down-payments.index', compact('booking'));
     }
 
@@ -285,10 +304,10 @@ class DownPaymentController extends Controller
                 $query
                     ->where('Tanggal', '<', $dp->Tanggal)
                     ->orWhere(function ($q) use ($dp, $transaksi) {
-                        $q
-                            ->where('Tanggal', $dp->Tanggal)
-                            ->where('id', '<', optional($transaksi)->id ?? 0);
-                    });
+                    $q
+                        ->where('Tanggal', $dp->Tanggal)
+                        ->where('id', '<', optional($transaksi)->id ?? 0);
+                });
             })
             ->orderBy('Tanggal', 'desc')
             ->orderBy('id', 'desc')

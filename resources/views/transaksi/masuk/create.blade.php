@@ -37,6 +37,8 @@
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
+                            <input type="hidden" name="IdDownPayment" value="{{ $dp->id }}">
+                            <input type="hidden" name="IdBooking" value="{{ $dp->getBooking->id }}">
                             <div class="col-md-4">
                                 <label for="IdPelanggan" class="form-label"><strong>Pelanggan</strong></label>
                                 <select name="IdPelanggan" id="IdPelanggan"

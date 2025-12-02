@@ -26,4 +26,9 @@ class PenawaranHarga extends Model
     {
         return $this->hasOne(User::class, 'id', 'NamaPelanggan');
     }
+    public function getBooking()
+    {
+        return $this->hasOne(BookingList::class, 'IdPenawaran', 'id');
+    }
+
 }

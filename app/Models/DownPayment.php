@@ -46,5 +46,12 @@ class DownPayment extends Model
     {
         return $this->belongsTo(BookingList::class, 'IdBooking', 'id');
     }
-
+    public function getBank()
+    {
+        return $this->hasOne(MasterBank::class, 'id', 'DariBank');
+    }
+    public function getTransaksi()
+    {
+        return $this->hasOne(Transaksi::class, 'IdDownPayment', 'id');
+    }
 }

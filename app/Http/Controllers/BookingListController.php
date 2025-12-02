@@ -29,9 +29,28 @@ class BookingListController extends Controller
                 ->addColumn('action', function ($row) {
                     $encryptedId = encrypt($row->id);
                     return '
-                        <a href="' . route('booking-list.edit', $encryptedId) . '" class="btn btn-sm btn-warning">Edit</a>
-                        <a href="' . route('booking-list.print', $encryptedId) . '" class="btn btn-sm btn-primary" target="_blank">Cetak Kwitansi</a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="' . $encryptedId . '">Hapus</button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-cogs me-1"></i> Aksi
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="' . route('booking-list.edit', $encryptedId) . '">
+                                        <i class="fa fa-edit me-2"></i> Edit
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="' . route('booking-list.print', $encryptedId) . '" target="_blank">
+                                        <i class="fa fa-print me-2"></i> Cetak Kwitansi
+                                    </a>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item btn-delete" data-id="' . $encryptedId . '" type="button">
+                                        <i class="fa fa-trash me-2"></i> Hapus
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     ';
                 })
                 ->editColumn('Total', function ($row) {
@@ -46,10 +65,22 @@ class BookingListController extends Controller
                 ->editColumn('NamaPelanggan', function ($row) {
                     return $row->getCustomer->name;
                 })
-                ->rawColumns(['action'])
+                ->addColumn('Nomor', function ($row) {
+                    $encryptedId = encrypt($row->id);
+                    return '<a href="' . route('booking-list.show', $encryptedId) . '" style="color: #007bff;">' . e($row->Nomor) . '</a>';
+                })
+                ->addColumn('StatusOrder', function ($row) {
+                    $status = $row->StatusOrder ?? '-';
+                    if ($status === 'Aktif') {
+                        return '<span class="badge bg-success">Aktif</span>';
+                    } else {
+                        return '<span class="badge bg-danger">Cancel</span>';
+                    }
+                })
+                ->rawColumns(['action', 'Nomor', 'StatusOrder'])
                 ->make(true);
         }
-        $penawaran = PenawaranHarga::with('getCustomer')->latest()->get();
+        $penawaran = PenawaranHarga::whereDoesntHave('getBooking')->with('getCustomer')->latest()->get();
         return view('booking-list.index', compact('penawaran'));
     }
 
@@ -181,9 +212,13 @@ class BookingListController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BookingList $bookingList)
+    public function show($id)
     {
-        //
+
+        $id = decrypt($id);
+        $bookingList = BookingList::with('getPenawaran', 'getKaryawan', 'getDp.getBank', 'getTransaksiHeader')->findOrFail($id);
+        // dd($bookingList);
+        return view('booking-list.show', compact('bookingList'));
     }
 
     /**
@@ -195,6 +230,47 @@ class BookingListController extends Controller
         $bank = MasterBank::get();
         $bookingList = BookingList::with('getPenawaran', 'getKaryawan')->findOrFail($id);
         return view('booking-list.edit', compact('bookingList', 'bank'));
+    }
+
+    public function cancelOrder(Request $request, $id)
+    {
+        $bookingList = BookingList::with('getPenawaran', 'getKaryawan', 'getDp.getBank', 'getTransaksiHeader')->findOrFail($request->IdBooking);
+        $alasanCancel = $request->input('AlasanCancel', null);
+        $bookingList->update([
+            'StatusOrder' => 'Cancel',
+            'UserCancel' => auth()->user()->name,
+            'TanggalCancel' => now(),
+            'AlasanCancel' => $alasanCancel,
+        ]);
+        if ($bookingList->getDp) {
+            $bookingList->getDp->update([
+                'StatusOrder' => 'Cancel',
+                'UserCancel' => auth()->user()->name,
+                'TanggalCancel' => now(),
+                'AlasanCancel' => $alasanCancel,
+            ]);
+        }
+        if ($bookingList->getTransaksiHeader) {
+            $bookingList->getTransaksiHeader->update([
+                'StatusOrder' => 'Cancel',
+                'UserCancel' => auth()->user()->name,
+                'TanggalCancel' => now(),
+                'AlasanCancel' => $alasanCancel,
+            ]);
+            if ($bookingList->getTransaksiHeader->getTransaksi && $bookingList->getTransaksiHeader->getTransaksi->count() > 0) {
+                foreach ($bookingList->getTransaksiHeader->getTransaksi as $detail) {
+                    $detail->update([
+                        'StatusOrder' => 'Cancel',
+                        'UserCancel' => auth()->user()->name,
+                        'TanggalCancel' => now(),
+                        'AlasanCancel' => $alasanCancel,
+                    ]);
+                }
+            }
+        }
+
+
+        return redirect()->back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
     public function PrintKwitansi($id)

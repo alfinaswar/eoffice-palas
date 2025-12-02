@@ -37,7 +37,7 @@ class TransaksiController extends Controller
                 ->rawColumns(['action'])
                 ->make(true);
         }
-        $dp = DownPayment::with('getProduk', 'getCustomer')->latest()->get();
+        $dp = DownPayment::with('getProduk', 'getCustomer', 'getTransaksi')->latest()->get();
         return view('transaksi.masuk.index', compact('dp'));
     }
 
@@ -47,7 +47,7 @@ class TransaksiController extends Controller
     public function create($id)
     {
         $id = decrypt($id);
-        $dp = DownPayment::with('getCustomer', 'getProduk')->find($id);
+        $dp = DownPayment::with('getCustomer', 'getProduk', 'getBooking')->find($id);
         $angsuran = MasterAngsuran::get();
         return view('transaksi.masuk.create', compact('dp', 'angsuran'));
     }
@@ -97,6 +97,8 @@ class TransaksiController extends Controller
 
         $transaksi = Transaksi::create([
             'KodeTransaksi' => $generateKode,
+            'IdDownPayment' => $request->IdDownPayment,
+            'IdBooking' => $request->IdBooking,
             'IdProduk' => $request->IdProduk,
             'TanggalTransaksi' => $request->TanggalTransaksi,
             'IdPelanggan' => $request->IdPelanggan,
@@ -194,7 +196,11 @@ class TransaksiController extends Controller
     public function Tagihan($id)
     {
         $id = decrypt($id);
-        $data = user::with('getTransaksi')->find($id);
+        $data = User::with([
+            'getTransaksi' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ])->find($id);
         return view('transaksi.masuk.show', compact('data'));
     }
 
@@ -234,7 +240,10 @@ class TransaksiController extends Controller
         $transaksiDetail->KodeBayar = $this->generateKodeBayar();
         $transaksiDetail->Status = 'Lunas';
         $transaksiDetail->DibayarPada = now();
-        $transaksiDetail->DibayarOleh = $request->input('DibayarOleh');
+        $transaksiDetail->NamaBank = $request->input('NamaBank');
+        $transaksiDetail->DariBank = $request->input('DariBank');
+        $transaksiDetail->NoRekening = $request->input('NoRekening');
+
         $transaksiDetail->save();
 
         $transaksi = $transaksiDetail->transaksi;

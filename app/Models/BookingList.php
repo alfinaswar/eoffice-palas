@@ -48,4 +48,12 @@ class BookingList extends Model
     {
         return $this->hasOne(MasterKantor::class, 'Kode', 'KodeKantor');
     }
+    public function getDp()
+    {
+        return $this->hasOne(DownPayment::class, 'IdBooking', 'id');
+    }
+    public function getTransaksiHeader()
+    {
+        return $this->hasOne(Transaksi::class, 'IdBooking', 'id');
+    }
 }

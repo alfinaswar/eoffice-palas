@@ -54,7 +54,7 @@
                                             <td>{{ $p->getCustomer->name }}</td>
                                             <td>Rp {{ number_format($p->Total, 0, ',', '.') }}</td>
                                             <td>
-                                                <a href="{{route('booking-list.create', encrypt($p->id))}}"
+                                                <a href="{{ route('booking-list.create', encrypt($p->id)) }}"
                                                     class="btn btn-success btn-sm pilih-penawaran"
                                                     data-id="{{ encrypt($p->id) }}">
                                                     Pilih
@@ -96,6 +96,7 @@
                                     <th>Penerima</th>
                                     <th>Diterima Pada</th>
                                     <th>Penyetor</th>
+                                    <th>Status Order</th>
                                     <th width="15%">Aksi</th>
                                 </tr>
                             </thead>
@@ -122,9 +123,9 @@
         </script>
     @endif
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Fix the modal not showing issue
-            $('#btnAmbilPengajuan').on('click', function () {
+            $('#btnAmbilPengajuan').on('click', function() {
                 // Ensure bootstrap modal JS is loaded
                 var modal = $('#modalPenawaranHarga');
                 // Check if modal exists to avoid js error
@@ -133,7 +134,7 @@
                 }
             });
 
-            $('body').on('click', '.btn-delete', function () {
+            $('body').on('click', '.btn-delete', function() {
                 var id = $(this).data('id');
                 Swal.fire({
                     title: 'Hapus Data?',
@@ -151,7 +152,7 @@
                             data: {
                                 _token: '{{ csrf_token() }}'
                             },
-                            success: function (response) {
+                            success: function(response) {
                                 if (response.status === 200) {
                                     Swal.fire('Dihapus!', response.message, 'success');
                                     $('#bookingListTable').DataTable().ajax.reload();
@@ -159,7 +160,7 @@
                                     Swal.fire('Gagal!', response.message, 'error');
                                 }
                             },
-                            error: function (xhr) {
+                            error: function(xhr) {
                                 Swal.fire('Gagal!', xhr.responseJSON?.message ??
                                     'Terjadi kesalahan saat menghapus.', 'error');
                             }
@@ -185,58 +186,62 @@
                         }
                     },
                     columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
+                            data: 'DT_RowIndex',
+                            name: 'DT_RowIndex',
+                            orderable: false,
+                            searchable: false
+                        },
 
-                    {
-                        data: 'Nomor',
-                        name: 'Nomor'
-                    },
-                    {
-                        data: 'IdProduk',
-                        name: 'IdProduk'
-                    },
-                    {
-                        data: 'NamaPelanggan',
-                        name: 'NamaPelanggan'
-                    },
-                    {
-                        data: 'Tanggal',
-                        name: 'Tanggal'
-                    },
-                    {
-                        data: 'Total',
-                        name: 'Total'
-                    },
-                    {
-                        data: 'JenisPembayaran',
-                        name: 'JenisPembayaran'
-                    },
-                    {
-                        data: 'Keterangan',
-                        name: 'Keterangan'
-                    },
-                    {
-                        data: 'Penerima',
-                        name: 'Penerima'
-                    },
-                    {
-                        data: 'DiterimaPada',
-                        name: 'DiterimaPada'
-                    },
-                    {
-                        data: 'Penyetor',
-                        name: 'Penyetor'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
+                        {
+                            data: 'Nomor',
+                            name: 'Nomor'
+                        },
+                        {
+                            data: 'IdProduk',
+                            name: 'IdProduk'
+                        },
+                        {
+                            data: 'NamaPelanggan',
+                            name: 'NamaPelanggan'
+                        },
+                        {
+                            data: 'Tanggal',
+                            name: 'Tanggal'
+                        },
+                        {
+                            data: 'Total',
+                            name: 'Total'
+                        },
+                        {
+                            data: 'JenisPembayaran',
+                            name: 'JenisPembayaran'
+                        },
+                        {
+                            data: 'Keterangan',
+                            name: 'Keterangan'
+                        },
+                        {
+                            data: 'Penerima',
+                            name: 'Penerima'
+                        },
+                        {
+                            data: 'DiterimaPada',
+                            name: 'DiterimaPada'
+                        },
+                        {
+                            data: 'Penyetor',
+                            name: 'Penyetor'
+                        },
+                        {
+                            data: 'StatusOrder',
+                            name: 'StatusOrder'
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false
+                        }
                     ]
                 });
             }

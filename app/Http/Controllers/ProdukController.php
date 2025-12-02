@@ -49,17 +49,21 @@ class ProdukController extends Controller
                     return RupiahFormat::currency($row->HargaNormal);
                 })
                 ->addColumn('Status', function ($row) {
-                    if ($row->getDataBooking) {
-                        $namaBooking = '-';
-                        if (isset($row->getDataBooking->getCustomer) && $row->getDataBooking->getCustomer) {
-                            $namaBooking = $row->getDataBooking->getCustomer->name;
-                        } elseif (isset($row->getDataBooking->Nama)) {
-                            $namaBooking = $row->getDataBooking->Nama;
+                    $dataBooking = $row->getDataBooking;
+                    if ($dataBooking && isset($dataBooking->StatusOrder)) {
+                        if ($dataBooking->StatusOrder == 'Aktif') {
+                            $namaBooking = '-';
+                            if (isset($dataBooking->getCustomer) && $dataBooking->getCustomer) {
+                                $namaBooking = $dataBooking->getCustomer->name;
+                            } elseif (isset($dataBooking->Nama)) {
+                                $namaBooking = $dataBooking->Nama;
+                            }
+                            return '<span class="badge bg-danger">Sudah Dibooking</span> <br><small>Customer: ' . $namaBooking . '</small>';
+                        } elseif ($dataBooking->StatusOrder === 'Cancel' || $dataBooking->StatusOrder === 'canceled' || $dataBooking->StatusOrder === 'batal') {
+                            return '<span class="badge bg-success">Tersedia</span>';
                         }
-                        return '<span class="badge bg-danger">Sudah Dibooking</span> <br><small>Customer: ' . $namaBooking . '</small>';
-                    } else {
-                        return '<span class="badge bg-success">Tersedia</span>';
                     }
+                    return '<span class="badge bg-success">Tersedia</span>';
                 })
                 ->rawColumns(['action', 'Status'])
                 ->make(true);
