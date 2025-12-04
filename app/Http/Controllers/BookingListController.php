@@ -73,8 +73,12 @@ class BookingListController extends Controller
                     $status = $row->StatusOrder ?? '-';
                     if ($status === 'Aktif') {
                         return '<span class="badge bg-success">Aktif</span>';
+                    } elseif ($status === 'Cancel') {
+                        $encryptedId = encrypt($row->id);
+                        $cancelUrl = route('booking-list.download-cancel', $encryptedId);
+                        return '<span class="badge bg-danger">Cancel</span> <a href="' . $cancelUrl . '" class="ms-2" target="_blank">Surat Cancel</a>';
                     } else {
-                        return '<span class="badge bg-danger">Cancel</span>';
+                        return '<span class="badge bg-secondary">' . e($status) . '</span>';
                     }
                 })
                 ->rawColumns(['action', 'Nomor', 'StatusOrder'])
@@ -220,7 +224,17 @@ class BookingListController extends Controller
         // dd($bookingList);
         return view('booking-list.show', compact('bookingList'));
     }
+    public function downloadCancel($id)
+    {
+        $id = decrypt($id);
+        $bookingList = BookingList::with('getPenawaran', 'getKaryawan', 'getDp.getBank', 'getTransaksiHeader')->findOrFail($id);
+        // Kertas F4: 21.0 x 33.0 cm dalam satuan cm
+        $pdf = FacadePdf::loadView('booking-list.cetak-pernyataan-cancel', compact('bookingList'))
+            ->setPaper([0, 0, 595.28, 935.43], 'portrait'); // F4: 21 x 33 cm in points (1cm ≈ 28.3465 pt)
+        $fileName = 'Surat_Cancel_Booking_' . ($bookingList->Nomor ?? $bookingList->id) . '.pdf';
 
+        return $pdf->stream($fileName);
+    }
     /**
      * Show the form for editing the specified resource.
      */

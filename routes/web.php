@@ -153,6 +153,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/update/{id}', [BookingListController::class, 'update'])->name('booking-list.update');
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
+        Route::get('/download-cancel/{id}', [BookingListController::class, 'downloadCancel'])->name('booking-list.download-cancel');
+
     });
     Route::prefix('down-payment')->group(function () {
         Route::get('/', [DownPaymentController::class, 'index'])->name('dp.index');
