@@ -16,6 +16,7 @@ use Laraindo\RupiahFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use Pdf;
+use Yajra\DataTables\DataTables as YajraDataTables;
 
 class MenuLaporanController extends Controller
 {
@@ -160,8 +161,18 @@ class MenuLaporanController extends Controller
     public function Penjualan(Request $request)
     {
         if ($request->ajax()) {
-            $data = Transaksi::with('getTransaksi', 'getCustomer', 'getProduk')->latest();
+            $data = Transaksi::with([
+                'getCustomer',
+                'getProduk.getProyek',
+                'getProduk.getGrade',
+                'getBooking.getDp'
+            ])->latest();
 
+            if ($request->filled('proyek')) {
+                $data = $data->whereHas('getProduk.getProyek', function ($q) use ($request) {
+                    $q->where('id', $request->proyek);
+                });
+            }
             if ($request->filled('produk')) {
                 $data = $data->where('IdProduk', $request->produk);
             }
@@ -169,57 +180,138 @@ class MenuLaporanController extends Controller
                 $data = $data->whereYear('TanggalTransaksi', $request->tahun);
             }
 
-            return DataTables::of($data)
+            return YajraDataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('IdPelanggan', function ($row) {
+                ->addColumn('NamaPelanggan', function ($row) {
                     return $row->getCustomer ? $row->getCustomer->name : '-';
                 })
-                ->editColumn('IdProduk', function ($row) {
-                    return $row->getProduk ? $row->getProduk->Nama : '-';
+                ->addColumn('TotalHarga', function ($row) {
+                    return RupiahFormat::currency($row->TotalHarga ?? 0);
                 })
-                ->editColumn('DurasiPembayaran', function ($row) {
-                    return $row->getProduk ? $row->getProduk->Nama : '-';
+                ->addColumn('ProdukGrade', function ($row) {
+                    $produk = $row->getProduk;
+                    $grade = $produk->getGrade->Nama ?? null;
+                    $nama = $produk ? $produk->Nama : '-';
+                    return $grade ? $nama . ' (Grade ' . $grade . ')' : $nama;
                 })
-                ->editColumn('TotalHarga', function ($row) {
-                    return RupiahFormat::currency($row->TotalHarga);
+                ->addColumn('Luas', function ($row) {
+                    $produk = $row->getProduk;
+                    $luas = $produk->Luas ?? null;
+                    return $luas ? $luas . ' m²' : '-';
                 })
-                ->editColumn('SisaBayar', function ($row) {
-                    return RupiahFormat::currency($row->SisaBayar);
+                ->addColumn('BookingFee', function ($row) {
+                    $BookingFee = $row->getBooking->Total ?? null;
+                    return RupiahFormat::currency($BookingFee ?? 0);
                 })
-                ->addColumn('StatusPembayaran', function ($row) {
-                    $status = $row->StatusPembayaran;
-                    if ($status === 'Lunas') {
-                        return '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Lunas</span>';
-                    } elseif ($status === 'BelumLunas' || $status === 'Belum Lunas (Angsuran)') {
-                        return '<span class="badge bg-warning text-dark"><i class="fas fa-hourglass-half me-1"></i>Belum Lunas</span>';
-                    } else {
-                        return '-';
-                    }
+                ->addColumn('Dp', function ($row) {
+                    $Dp = $row->getBooking->getDp->Total ?? null;
+                    // dd($Dp);
+                    return RupiahFormat::currency($Dp ?? 0);
                 })
-                ->rawColumns(['StatusPembayaran'])
+                ->addColumn('SisaPembayaran', function ($row) {
+                    return RupiahFormat::currency($row->SisaBayar ?? 0);
+                })
+                ->addColumn('TotalUangMasuk', function ($row) {
+                    $total = 0;
+                    $bookingFee = $row->getBooking->Total ?? 0;
+                    $total += (int) $bookingFee;
+                    $dp = $row->getBooking && $row->getBooking->getDp ? $row->getBooking->getDp->Total : 0;
+                    $total += (int) $dp;
+
+                    $transaksiLunas = $row->getTransaksi ? collect($row->getTransaksi)->where('Status', 'Lunas') : collect();
+                    $totalPembayaranLunas = $transaksiLunas->sum('TotalPembayaran');
+                    $total += (int) $totalPembayaranLunas;
+
+                    return RupiahFormat::currency($total);
+                })
+                ->addColumn('TanggalBooking', function ($row) {
+                    return $row->TanggalTransaksi
+                        ? \Carbon\Carbon::parse($row->TanggalTransaksi)->format('d-m-Y')
+                        : '-';
+                })
+                // NoHP (customer)
+                ->addColumn('NoHP', function ($row) {
+                    $phone = $row->getCustomer ? $row->getCustomer->nohp : null;
+                    return $phone ? '0' . ltrim($phone, '0') : '-';
+                })
+                // Raw untuk tidak escape kolom apapun
+                ->rawColumns([
+                    'NamaPelanggan',
+                    'TotalHarga',
+                    'ProdukGrade',
+                    'Luas',
+                    'BookingFee',
+                    'SisaPembayaran',
+                    'TotalUangMasuk',
+                    'TanggalBooking',
+                    'NoHP',
+                    'Dp'
+                ])
                 ->make(true);
         }
+
         $MasterProduk = Produk::get();
         $Proyek = MasterProjek::get();
+
         return view('laporan.penjualan.index', compact('MasterProduk', 'Proyek'));
     }
 
     public function DownloadPenjualan(Request $request)
     {
-        $proyekNama = $request->input('Proyek');
+        $proyekId = $request->input('Proyek');
         $format = $request->input('format', 'excel');
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalAkhir = $request->input('tanggal_akhir');
 
-        $data = Transaksi::whereHas('getProduk.getProyek', function ($query) use ($proyekNama) {
-            $query->where('id', $proyekNama);
-        })->with(['getProduk.getProyek'])->get();
-        // dd($data);
+        $proyek = MasterProjek::find($proyekId);
+        $namaProyek = $proyek ? $proyek->NamaProyek : '-';
+
+        $query = Transaksi::with(['getProduk', 'getProduk.getProyek', 'getBooking', 'getBooking.getDp', 'getCustomer'])
+            ->whereHas('getProduk.getProyek', function ($query) use ($proyekId) {
+                $query->where('id', $proyekId);
+            });
+
+        if ($tanggalMulai && $tanggalAkhir) {
+            $query->whereDate('TanggalTransaksi', '>=', $tanggalMulai)
+                ->whereDate('TanggalTransaksi', '<=', $tanggalAkhir);
+        }
+
+        $data = $query->get()->map(function ($row) {
+            $row->NamaPelanggan = $row->getCustomer ? $row->getCustomer->name : '-';
+            $row->TotalHarga = $row->TotalHarga ?? 0;
+            $produk = $row->getProduk;
+            $row->ProdukGrade = $produk ? ($produk->Nama ?? '-') . (isset($produk->Grade) ? ' - ' . $produk->Grade : '') : '-';
+            $row->Luas = $produk && isset($produk->Luas) ? $produk->Luas : '-';
+            $row->BookingFee = $row->getBooking ? ($row->getBooking->Total ?? 0) : 0;
+            $row->Dp = $row->getBooking && $row->getBooking->getDp ? $row->getBooking->getDp->Total : 0;
+            $row->SisaPembayaran = $row->TotalHarga - ($row->BookingFee + $row->Dp);
+
+            $cicilan = 0;
+            if ($row->getTransaksi && $row->getTransaksi->count() > 0) {
+                foreach ($row->getTransaksi as $detail) {
+                    if (isset($detail->Status) && strtolower($detail->Status) == 'lunas') {
+                        $cicilan += $detail->TotalPembayaran ?? 0;
+                    }
+                }
+            }
+            $row->TotalUangMasuk = $row->BookingFee + $row->Dp + $cicilan;
+            $row->TanggalBooking = $row->TanggalTransaksi
+                ? \Carbon\Carbon::parse($row->TanggalTransaksi)->format('d-m-Y')
+                : '-';
+            $phone = $row->getCustomer ? $row->getCustomer->nohp : null;
+            $row->NoHP = $phone ? '0' . ltrim($phone, '0') : '-';
+            return $row;
+        });
 
         if ($format == 'excel') {
-            $fileName = "Laporan_Omset_{$tahunDari}_{$tahunSampai}.xlsx";
-            return Excel::download(new OmsetExport($rows, $tahunDari, $tahunSampai), $fileName);
+            $fileName = "Laporan_Omset_{$namaProyek}.xlsx";
+            return Excel::download(new OmsetExport($data, $namaProyek, $tanggalMulai, $tanggalAkhir), $fileName);
         } elseif ($format == 'pdf') {
             $pdf = Pdf::loadView('laporan.penjualan.export', [
                 'data' => $data,
+                'nama_proyek' => $namaProyek,
+                'tanggal_mulai' => $tanggalMulai,
+                'tanggal_akhir' => $tanggalAkhir
             ])->setPaper('a4', 'landscape');
             return $pdf->stream('Laporan Penjualan.pdf');
         } else {

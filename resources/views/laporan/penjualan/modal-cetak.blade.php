@@ -20,6 +20,19 @@
                              </select>
                          </div>
                      </div>
+                     <!-- Tanggal Mulai dan Tanggal Akhir -->
+                     <div class="mb-3 row">
+                         <div class="col-6">
+                             <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
+                             <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai"
+                                 required>
+                         </div>
+                         <div class="col-6">
+                             <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
+                             <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir"
+                                 required>
+                         </div>
+                     </div>
                      <div class="mb-3">
                          <label class="form-label">Format Cetak</label>
                          <div>

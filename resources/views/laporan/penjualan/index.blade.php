@@ -13,8 +13,7 @@
         </div>
     </div>
 
-    {{-- FILTER PRODUK & TAHUN --}}
-
+    {{-- FILTER PROYEK, PRODUK & TAHUN --}}
 
     <div class="row">
         <div class="col-sm-12">
@@ -27,6 +26,18 @@
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
+                        {{-- Filter Proyek --}}
+                        <div class="col-md-3">
+                            <label for="filter_proyek" class="form-label mb-1">Proyek</label>
+                            <select id="filter_proyek" class="select2">
+                                <option value="">Semua Proyek</option>
+                                @foreach ($Proyek as $proyek)
+                                    <option value="{{ $proyek->id }}">{{ $proyek->NamaProyek ?? ($proyek->nama ?? '-') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        {{-- Filter Produk --}}
                         <div class="col-md-3">
                             <label for="filter_produk" class="form-label mb-1">Produk</label>
                             <select id="filter_produk" class="select2">
@@ -36,6 +47,7 @@
                                 @endforeach
                             </select>
                         </div>
+                        {{-- Filter Tahun --}}
                         <div class="col-md-2">
                             <label for="filter_tahun" class="form-label mb-1">Tahun</label>
                             <select id="filter_tahun" class="select2">
@@ -68,15 +80,16 @@
                             <thead>
                                 <tr>
                                     <th width="5%">No</th>
-                                    <th>Kode Transaksi</th>
-                                    <th>Produk</th>
-                                    <th>Tanggal</th>
-                                    <th>Pelanggan</th>
+                                    <th>Nama</th>
                                     <th>Total Harga</th>
-                                    <th>Tipe Pembayaran</th>
-                                    <th>Durasi Pembayaran</th>
-                                    <th>Sisa Bayar</th>
-                                    <th>Status</th>
+                                    <th>Produk & Grade</th>
+                                    <th>Luas</th>
+                                    <th>Booking Fee</th>
+                                    <th>Dp</th>
+                                    <th>Sisa Pembayaran</th>
+                                    <th>Total Uang Masuk</th>
+                                    <th>Tanggal Booking</th>
+                                    <th>No HP</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -114,6 +127,7 @@
                     ajax: {
                         url: "{{ route('laporan-penjualan.index') }}",
                         data: function(d) {
+                            d.proyek = $('#filter_proyek').val();
                             d.produk = $('#filter_produk').val();
                             d.tahun = $('#filter_tahun').val();
                         }
@@ -132,40 +146,54 @@
                             searchable: false
                         },
                         {
-                            data: 'KodeTransaksi',
-                            name: 'KodeTransaksi'
-                        },
-                        {
-                            data: 'IdProduk',
-                            name: 'IdProduk'
-                        },
-                        {
-                            data: 'TanggalTransaksi',
-                            name: 'TanggalTransaksi'
-                        },
-                        {
-                            data: 'IdPelanggan',
-                            name: 'IdPelanggan'
+                            data: 'NamaPelanggan',
+                            name: 'NamaPelanggan',
+                            defaultContent: '-'
                         },
                         {
                             data: 'TotalHarga',
-                            name: 'TotalHarga'
+                            name: 'TotalHarga',
+                            defaultContent: '-'
                         },
                         {
-                            data: 'JenisTransaksi',
-                            name: 'JenisTransaksi'
+                            data: 'ProdukGrade',
+                            name: 'ProdukGrade',
+                            defaultContent: '-'
                         },
                         {
-                            data: 'DurasiPembayaran',
-                            name: 'DurasiPembayaran'
+                            data: 'Luas',
+                            name: 'Luas',
+                            defaultContent: '-'
                         },
                         {
-                            data: 'SisaBayar',
-                            name: 'SisaBayar'
+                            data: 'BookingFee',
+                            name: 'BookingFee',
+                            defaultContent: '-'
                         },
                         {
-                            data: 'StatusPembayaran',
-                            name: 'StatusPembayaran'
+                            data: 'Dp',
+                            name: 'Dp',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'SisaPembayaran',
+                            name: 'SisaPembayaran',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'TotalUangMasuk',
+                            name: 'TotalUangMasuk',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'TanggalBooking',
+                            name: 'TanggalBooking',
+                            defaultContent: '-'
+                        },
+                        {
+                            data: 'NoHP',
+                            name: 'NoHP',
+                            defaultContent: '-'
                         },
                     ]
                 });
@@ -180,7 +208,7 @@
             });
 
             // Jika ingin reload otomatis saat ganti filter, bisa uncomment baris berikut:
-            // $('#filter_produk, #filter_tahun').on('change', function() { $('#penjualanTable').DataTable().ajax.reload(); });
+            // $('#filter_proyek, #filter_produk, #filter_tahun').on('change', function() { $('#penjualanTable').DataTable().ajax.reload(); });
         });
     </script>
 @endpush

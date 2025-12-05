@@ -57,4 +57,13 @@ class Transaksi extends Model
     {
         return $this->hasOne(MasterAngsuran::class, 'id', 'DurasiPembayaran');
     }
+    public function getBooking()
+    {
+        return $this->hasOne(BookingList::class, 'id', 'IdBooking');
+    }
+    public function getDownPayment()
+    {
+        return $this->hasOne(DownPayment::class, 'id', 'IdBooking');
+    }
+
 }

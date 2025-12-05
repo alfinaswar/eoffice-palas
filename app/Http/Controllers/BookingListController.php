@@ -227,10 +227,41 @@ class BookingListController extends Controller
     public function downloadCancel($id)
     {
         $id = decrypt($id);
-        $bookingList = BookingList::with('getPenawaran', 'getKaryawan', 'getDp.getBank', 'getTransaksiHeader')->findOrFail($id);
-        // Kertas F4: 21.0 x 33.0 cm dalam satuan cm
-        $pdf = FacadePdf::loadView('booking-list.cetak-pernyataan-cancel', compact('bookingList'))
-            ->setPaper([0, 0, 595.28, 935.43], 'portrait'); // F4: 21 x 33 cm in points (1cm ≈ 28.3465 pt)
+        $bookingList = BookingList::with([
+            'getPenawaran',
+            'getKaryawan',
+            'getDp.getBank',
+            'getTransaksiHeader.getTransaksi'
+        ])->findOrFail($id);
+        $totalBookingFee = $bookingList->Total ?? 0;
+
+
+        $totalDownPayment = 0;
+        if ($bookingList->getDp) {
+            $totalDownPayment = $bookingList->getDp->Total ?? 0;
+        }
+        // dd($totalDownPayment);
+        $totalAngsuran = 0;
+        // Hitung total pembayaran angsuran dengan status Lunas
+        if ($bookingList->getTransaksiHeader) {
+            if (isset($bookingList->getTransaksiHeader->getTransaksi)) {
+                $transList = $bookingList->getTransaksiHeader->getTransaksi;
+                if ($transList instanceof \Illuminate\Support\Collection || is_iterable($transList)) {
+                    foreach ($transList as $transaksi) {
+                        if (
+                            ($transaksi->Status ?? null) == 'Lunas'
+                        ) {
+                            $totalAngsuran += $transaksi->TotalPembayaran ?? 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        $pdf = FacadePdf::loadView(
+            'booking-list.cetak-pernyataan-cancel',
+            compact('bookingList', 'totalBookingFee', 'totalDownPayment', 'totalAngsuran')
+        )->setPaper([0, 0, 595.28, 935.43], 'portrait'); // F4: 21 x 33 cm in points (1cm ≈ 28.3465 pt)
         $fileName = 'Surat_Cancel_Booking_' . ($bookingList->Nomor ?? $bookingList->id) . '.pdf';
 
         return $pdf->stream($fileName);
@@ -256,6 +287,7 @@ class BookingListController extends Controller
             'TanggalCancel' => now(),
             'AlasanCancel' => $alasanCancel,
         ]);
+
         if ($bookingList->getDp) {
             $bookingList->getDp->update([
                 'StatusOrder' => 'Cancel',
@@ -282,6 +314,7 @@ class BookingListController extends Controller
                 }
             }
         }
+
 
 
         return redirect()->back()->with('success', 'Pesanan berhasil dibatalkan.');

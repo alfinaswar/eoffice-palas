@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            margin-top: 4.0cm;
-            margin-bottom: 4.0cm;
+            margin-top: 2.0cm;
+            margin-bottom: 2.0cm;
             margin-left: 2.54cm;
             margin-right: 2.54cm;
             font-size: 14px;
@@ -70,9 +70,9 @@
 </head>
 
 <body>
-    <div class="watermark">
+    {{-- <div class="watermark">
         <img src="{{ public_path('assets/img/bgsurat/surat.png') }}" alt="" width="100%" height="100%">
-    </div>
+    </div> --}}
     <div style="margin-top: 0.3cm; margin-bottom: 0.3cm;">
         <center>
             <span style="font-size: 16pt; font-weight: bold;">SURAT PERNYATAAN PEMBATALAN PESANAN</span>
@@ -80,28 +80,29 @@
         </center>
     </div>
     Saya yang bertada tangan dibawah ini :
-    <table class="tabel-info">
-        <tr>
+    <br><br>
+    <table class="tabel-info" style="line-height: 1;">
+        <tr style="line-height: 1;">
             <td width="35%">Nama Customer</td>
             <td width="1%">:</td>
             <td style="text-transform: uppercase;">{{ $bookingList->getPenawaran->getCustomer->name ?? '-' }}</td>
         </tr>
-        <tr>
+        <tr style="line-height: 1;">
             <td>NIK</td>
             <td>:</td>
             <td>{{ $bookingList->getPenawaran->getCustomer->nik ?? '-' }}</td>
         </tr>
-        <tr>
+        <tr style="line-height: 1;">
             <td>Alamat Customer</td>
             <td>:</td>
             <td>{{ $bookingList->getPenawaran->getCustomer->alamat ?? '-' }}</td>
         </tr>
-        <tr>
+        <tr style="line-height: 1;">
             <td>No. Telepon Customer</td>
             <td>:</td>
             <td>0{{ $bookingList->getPenawaran->getCustomer->nohp ?? '-' }}</td>
         </tr>
-        <tr>
+        <tr style="line-height: 1;">
             <td>Lokasi Proyek</td>
             <td>:</td>
             <td>
@@ -116,7 +117,7 @@
                 @endif
             </td>
         </tr>
-        <tr>
+        <tr style="line-height: 1;">
             <td>Produk</td>
             <td>:</td>
             <td>
@@ -133,15 +134,15 @@
         </tr>
     </table>
 
-    <div class="statement" style="margin-bottom: 10px;">
-        <p style="margin-bottom: 6px;">Dengan ini saya menyatakan <strong><i>Cancel / Batal</i></strong> untuk membeli
+    <div class="statement" style="margin-bottom: 0px;">
+        <p style="margin-bottom: 1px;">Dengan ini saya menyatakan <strong><i>Cancel / Batal</i></strong> untuk membeli
             tanah kavling Pesona Maharani
             hal ini dikarenakan : <strong>Karna kebutuhan lainnya</strong></p>
-        <p style="text-indent: 40px; margin-bottom: 0;">Saya menyepakati bahwa metode pengembalian uang yang telah
+        <p style="text-indent: 30px; margin-bottom: 0;">Saya menyepakati bahwa metode pengembalian uang yang telah
             disetorkan sesuai
             ketentuan management Pesona Maharani sebagai berikut :</p>
     </div>
-    <div class="terms">
+    <div class="terms" style="margin-top: 0;">
         <ol>
             <li>Lahan tanah kavling tersebut dapat dijual Kembali kepada Pihak Lain.</li>
             <li>Pembayaran dana pengembalian setelah lahan tanah kavling tsb terjual kembali kepada Pihak Lain yang
@@ -154,106 +155,76 @@
     </div>
     <div>
         Adapun Pembayaran / Uang Masuk :
-        <table style="width:100%; font-size:13px; border-collapse:collapse; margin-top:8px; margin-bottom: 10px;"
-            border="1">
+        @php
+            // Booking fee diambil dari $totalBookingFee dari controller
+            $bookingFee = $totalBookingFee ?? 0;
+
+            // Uang muka (DP) diambil dari $totalDownPayment dari controller
+            $uangMuka = $totalDownPayment ?? 0;
+
+            // Total angsuran diambil dari $totalAngsuran dari controller
+            $angsuran = $totalAngsuran ?? 0;
+
+            $totalMasuk = $bookingFee + $uangMuka + $angsuran;
+        @endphp
+        <table class="tabel-info" style="line-height: 1;">
             <thead>
-                <tr style="background:#f2f2f2; text-align:center;">
-                    <th style="padding:4px;">Jenis Pembayaran</th>
-                    <th style="padding:4px;">Tanggal</th>
-                    <th style="padding:4px;">Nominal</th>
-                    <th style="padding:4px;">Bank</th>
-                    <th style="padding:4px;">Keterangan</th>
+                <tr style="background:#f2f2f2; text-align:center; line-height:1;">
+                    <th style="padding:2px 4px; line-height:1;">Jenis Pembayaran</th>
+                    <th style="padding:2px 4px; line-height:1;">Nominal</th>
                 </tr>
             </thead>
             <tbody>
-                @if ($bookingList->getDp)
-                    <tr>
-                        <td style="padding:4px;">Booking Fee</td>
-                        <td style="padding:4px;">
-                            {{ \Carbon\Carbon::parse($bookingList->getDp->TanggalBayar ?? $bookingList->getDp->created_at)->translatedFormat('d F Y') ?? '-' }}
-                        </td>
-                        <td style="padding:4px;">Rp
-                            {{ number_format($bookingList->getDp->NominalBayar ?? 0, 0, ',', '.') }}</td>
-                        <td style="padding:4px;">
-                            {{ $bookingList->getDp->getBank->NamaBank ?? '-' }}
-                        </td>
-                        <td style="padding:4px;">
-                            {{ $bookingList->getDp->Keterangan ?? '-' }}
-                        </td>
-                    </tr>
-                @endif
-
-                @if ($bookingList->getTransaksiHeader && ($bookingList->getTransaksiHeader->JenisPembayaran ?? '') == 'DP')
-                    <tr>
-                        <td style="padding:4px;">Uang Muka (DP)</td>
-                        <td style="padding:4px;">
-                            {{ \Carbon\Carbon::parse($bookingList->getTransaksiHeader->TanggalBayar ?? $bookingList->getTransaksiHeader->created_at)->translatedFormat('d F Y') ?? '-' }}
-                        </td>
-                        <td style="padding:4px;">Rp
-                            {{ number_format($bookingList->getTransaksiHeader->TotalBayar ?? 0, 0, ',', '.') }}</td>
-                        <td style="padding:4px;">
-                            {{ $bookingList->getTransaksiHeader->getBank->NamaBank ?? '-' }}
-                        </td>
-                        <td style="padding:4px;">
-                            {{ $bookingList->getTransaksiHeader->Keterangan ?? '-' }}
-                        </td>
-                    </tr>
-                @endif
-
-
-
-                @if (
-                    !$bookingList->getDp &&
-                        !($bookingList->getTransaksiHeader && ($bookingList->getTransaksiHeader->JenisPembayaran ?? '') == 'DP') &&
-                        !(
-                            $bookingList->getTransaksiHeader &&
-                            $bookingList->getTransaksiHeader->getTransaksi &&
-                            $bookingList->getTransaksiHeader->getTransaksi->count()
-                        ))
-                    <tr>
-                        <td colspan="5" style="text-align:center;padding:7px;">Tidak ada data pembayaran.</td>
+                <tr style="line-height:1;">
+                    <td style="padding:2px 4px; line-height:1;">Booking Fee</td>
+                    <td style="padding:2px 4px; line-height:1;">
+                        Rp {{ number_format($bookingFee, 0, ',', '.') }}
+                    </td>
+                </tr>
+                <tr style="line-height:1;">
+                    <td style="padding:2px 4px; line-height:1;">Uang Muka (DP)</td>
+                    <td style="padding:2px 4px; line-height:1;">
+                        Rp {{ number_format($uangMuka, 0, ',', '.') }}
+                    </td>
+                </tr>
+                <tr style="line-height:1;">
+                    <td style="padding:2px 4px; line-height:1;">Total Angsuran Masuk</td>
+                    <td style="padding:2px 4px; line-height:1;">
+                        Rp {{ number_format($angsuran, 0, ',', '.') }}
+                    </td>
+                </tr>
+                <tr style="line-height:1;">
+                    <td style="padding:2px 4px; text-align:right; font-weight:bold; line-height:1;">Total</td>
+                    <td style="padding:2px 4px; font-weight:bold; line-height:1;">
+                        Rp {{ number_format($totalMasuk, 0, ',', '.') }}
+                    </td>
+                </tr>
+                @if ($bookingFee == 0 && $uangMuka == 0 && $angsuran == 0)
+                    <tr style="line-height:1;">
+                        <td colspan="2" style="text-align:center;padding:4px; line-height:1;">Tidak ada data
+                            pembayaran.</td>
                     </tr>
                 @endif
             </tbody>
         </table>
 
     </div>
-    <table class="tanda-tangan" style="margin-top: 2.5cm;">
+    <br><br>
+    <table style="width:100%; margin-top:40px;">
         <tr>
-            <td>Pekanbaru, {{ \Carbon\Carbon::parse($bookingList->TanggalCancel)->translatedFormat('d F Y') }}</td>
-        </tr>
-        <tr>
-            <td style="height: 60px;">&nbsp;</td>
-        </tr>
-        <tr>
-            <td style="font-weight: bold;">
-                {{ $bookingList->getPenawaran->getCustomer->name ?? '-' }}
+            <td style="width:50%; text-align:center; vertical-align:bottom;">
+                Menyetujui,<br><br><br>
+                <div style="height:70px;"></div>
+                <u style="display: inline-block; width: 85%;">&nbsp;</u>
+            </td>
+            <td style="width:50%; text-align:center; vertical-align:bottom;">
+                Pekanbaru, {{ \Carbon\Carbon::now()->format('d F Y') }}<br>
+                Yang Menyatakan,<br><br><br>
+                <div style="height:70px;"></div>
+                <u style="display: inline-block; width: 85%;">&nbsp;</u>
             </td>
         </tr>
     </table>
-
-    <br>
-    <br>
-    <div style="page-break-inside: avoid; break-inside: avoid;">
-        <table width="80%" style="font-size:12px; margin-top:40px;">
-            <tr>
-                <td width="50%" style="text-align:left;">
-                    Dibuat Oleh:
-                    <br><br><br>
-                    @if ($bookingList->UserCancel)
-                        <span style="font-weight: bold;">{{ $bookingList->UserCancel }}</span>
-                    @else
-                        <span style="font-weight: bold;">-</span>
-                    @endif
-                </td>
-                <td width="50%" style="text-align:left;">
-                    Customer,
-                    <br><br><br>
-                    <span style="font-weight: bold;">{{ $bookingList->getPenawaran->getCustomer->name ?? '-' }}</span>
-                </td>
-            </tr>
-        </table>
-    </div>
 </body>
 
 </html>

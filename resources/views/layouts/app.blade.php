@@ -166,7 +166,7 @@
                         </ul>
                     </li>
                     <li class="submenu-open">
-                        <h6 class="submenu-hdr">Dokumen & Surat</h6>
+                        <h6 class="submenu-hdr">Transaksi CS</h6>
                         <ul>
                             <li>
                                 <a href="{{ route('penawaran-harga.index') }}">
