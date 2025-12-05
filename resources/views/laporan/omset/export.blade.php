@@ -8,59 +8,45 @@
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
-            background-color: #fdfdfd;
+            background-color: #fff;
         }
 
         table {
             border-collapse: collapse;
             width: 100%;
             background: #fff;
-            box-shadow: 0 2px 6px rgba(76, 204, 31, 0.03);
         }
 
         th,
         td {
-            border: 1px solid #b0d6b3;
+            border: 1px solid #333;
             padding: 6px 8px;
             text-align: right;
         }
 
-        /* Header tahun (tahun columns) */
         th {
-            background-color: #e8f5e9;
-            /* lembut hijau muda */
-            color: #36844d;
             font-weight: bold;
         }
 
         th:first-child,
         td:first-child {
-            background-color: #b1dfbb;
-            color: #226633;
             text-align: left;
             font-weight: bold;
         }
 
         h2 {
             margin-bottom: 0.5em;
-            color: #298f45;
+            color: #222;
         }
 
         .text-center {
             text-align: center;
         }
 
-        /* Highlight baris total */
         tr:last-child th,
         tr:last-child td {
-            background-color: #8bc34a;
-            color: #fff;
             font-weight: bold;
-            border-top: 2px solid #388e3c;
-        }
-
-        tr:hover td {
-            background-color: #f1f8e9;
+            border-top: 2px solid #222;
         }
     </style>
 </head>

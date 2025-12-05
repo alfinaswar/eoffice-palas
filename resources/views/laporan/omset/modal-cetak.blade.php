@@ -1,7 +1,7 @@
  <!-- Modal Pilih Rentang Tahun dan Format Cetak -->
  <div class="modal fade" id="modalExportOmset" tabindex="-1" aria-labelledby="modalExportOmsetLabel" aria-hidden="true">
      <div class="modal-dialog">
-         <form id="formExportOmset" method="post" target="_blank" action="{{ route('laporan-omset.download') }}"
+         <form id="formExportOmset" method="post" target="_blank" action="{{ route('laporan-omset-bulanan.download') }}"
              enctype="multipart/form-data">
              @csrf
              <div class="modal-content">

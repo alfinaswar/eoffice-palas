@@ -208,26 +208,69 @@
                     <li class="submenu-open">
                         <h6 class="submenu-hdr">Laporan</h6>
                         <ul>
-                            <li>
-                                <a href="{{ route('laporan-omset.index') }}">
-                                    <i data-feather="file-text"></i>
-                                    <span>Omset</span>
+                            <li class="submenu">
+                                <a href="#">
+                                    <i data-feather="bar-chart-2"></i>
+                                    <span>Laporan Harian</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
+                                <ul style="display: none;">
+                                    <li>
+                                        <a href="{{ route('laporan-omset-harian.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Omset</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-penjualan.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Penjualan</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-mutasi.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Mutasi Dana</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <li>
-                                <a href="{{ route('laporan-penjualan.index') }}">
-                                    <i data-feather="file-text"></i>
-                                    <span>Penjualan</span>
+                            <li class="submenu">
+                                <a href="#">
+                                    <i data-feather="calendar"></i>
+                                    <span>Laporan Bulanan</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('laporan-mutasi.index') }}">
-                                    <i data-feather="file-text"></i>
-                                    <span>Mutasi Dana</span>
-                                </a>
+                                <ul style="display: none;">
+                                    <li>
+                                        <a href="{{ route('laporan-omset-bulanan.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Omset</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-unit-belum-terjual.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Unit Belum Terjual</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-refund.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Refund</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-mutasi.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Mutasi Dana</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
                     </li>
+
                     <li class="submenu-open">
                         <h6 class="submenu-hdr">Kelola Pengguna</h6>
                         <ul>

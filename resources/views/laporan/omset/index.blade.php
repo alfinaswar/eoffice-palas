@@ -135,7 +135,7 @@
                 bDestroy: true,
                 pageLength: 12, // Pagination is set to 12
                 ajax: {
-                    url: "{{ route('laporan-omset.index') }}",
+                    url: "{{ route('laporan-omset-bulanan.index') }}",
                     data: function(d) {
                         d.tahun = $('#tahun').val(); // kirim parameter tahun
                     }

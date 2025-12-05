@@ -154,7 +154,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/show/{id}', [BookingListController::class, 'show'])->name('booking-list.show');
         Route::delete('/delete/{id}', [BookingListController::class, 'destroy'])->name('booking-list.destroy');
         Route::get('/download-cancel/{id}', [BookingListController::class, 'downloadCancel'])->name('booking-list.download-cancel');
-
     });
     Route::prefix('down-payment')->group(function () {
         Route::get('/', [DownPaymentController::class, 'index'])->name('dp.index');
@@ -190,8 +189,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/delete/{id}', [TransaksiKeluarController::class, 'destroy'])->name('transaksi-keluar.destroy');
     });
     Route::prefix('laporan/omset')->group(function () {
-        Route::get('/', [MenuLaporanController::class, 'Omset'])->name('laporan-omset.index');
-        Route::post('/store', [MenuLaporanController::class, 'DownloadOmset'])->name('laporan-omset.download');
+        Route::get('/bulanan', [MenuLaporanController::class, 'Omset'])->name('laporan-omset-bulanan.index');
+        Route::post('/store-bulanan', [MenuLaporanController::class, 'DownloadOmset'])->name('laporan-omset-bulanan.download');
+
+        Route::get('/harian', [MenuLaporanController::class, 'OmsetHarian'])->name('laporan-omset-harian.index');
+        Route::post('/store-harian', [MenuLaporanController::class, 'DownloadOmsetHarian'])->name('laporan-omset-harian.download');
     });
     Route::prefix('laporan/penjualan')->group(function () {
         Route::get('/', [MenuLaporanController::class, 'Penjualan'])->name('laporan-penjualan.index');
@@ -200,5 +202,15 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('laporan/mutasi-dana')->group(function () {
         Route::get('/', [MenuLaporanController::class, 'MutasiDana'])->name('laporan-mutasi.index');
         Route::post('/store', [MenuLaporanController::class, 'DownloadMutasiDana'])->name('laporan-mutasi.download');
+    });
+    Route::prefix('laporan/unit-belum-terjual')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'UnitBelumTerjual'])->name('laporan-unit-belum-terjual.index');
+        Route::post('/download', [MenuLaporanController::class, 'DownloadUnitBelumTerjual'])->name('laporan-unit-belum-terjual.download');
+        Route::get('/download-excel', [MenuLaporanController::class, 'DownloadUnitBelumTerjualExcel'])->name('laporan-unit-belum-terjual.download-excel');
+        Route::get('/download-pdf', [MenuLaporanController::class, 'DownloadUnitBelumTerjualPdf'])->name('laporan-unit-belum-terjual.download-pdf');
+    });
+    Route::prefix('laporan/refund')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'Refund'])->name('laporan-refund.index');
+        Route::post('/store', [MenuLaporanController::class, 'DownloadRefund'])->name('laporan-refund.download');
     });
 });

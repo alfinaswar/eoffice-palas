@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\OmsetExport;
+use App\Exports\UnitBelumTerjualExport;
 use App\Models\MasterBank;
 use App\Models\MasterProjek;
 use App\Models\Produk;
@@ -15,8 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Laraindo\RupiahFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-use Pdf;
 use Yajra\DataTables\DataTables as YajraDataTables;
+use Pdf;
 
 class MenuLaporanController extends Controller
 {
@@ -91,6 +92,80 @@ class MenuLaporanController extends Controller
         return view('laporan.omset.index');
     }
 
+    public function OmsetHarian(Request $request)
+    {
+        if ($request->ajax()) {
+            // Ambil bulan dan tahun, default bulan/tahun hari ini
+            $bulan = $request->input('bulan', date('m'));
+            $tahun = $request->input('tahun', date('Y'));
+
+            // Tentukan jumlah hari di bulan tersebut
+            $jumlahHari = cal_days_in_month(CAL_GREGORIAN, intval($bulan), intval($tahun));
+
+            $tanggalList = [];
+            for ($hari = 1; $hari <= $jumlahHari; $hari++) {
+                $tanggalList[] = sprintf('%04d-%02d-%02d', $tahun, $bulan, $hari);
+            }
+
+            // Ambil data IN (omset) dan OUT (keluar), group per Tanggal
+            $dataOmset = TransaksiKeuangan::selectRaw('DATE(Tanggal) as TglNum, SUM(Nominal) as TotalOmset')
+                ->where('Jenis', 'IN')
+                ->whereMonth('Tanggal', $bulan)
+                ->whereYear('Tanggal', $tahun)
+                ->groupBy('TglNum')
+                ->orderBy('TglNum', 'asc')
+                ->get()
+                ->keyBy('TglNum');
+
+            $dataKeluar = TransaksiKeuangan::selectRaw('DATE(Tanggal) as TglNum, SUM(Nominal) as TotalKeluar')
+                ->where('Jenis', 'OUT')
+                ->whereMonth('Tanggal', $bulan)
+                ->whereYear('Tanggal', $tahun)
+                ->groupBy('TglNum')
+                ->orderBy('TglNum', 'asc')
+                ->get()
+                ->keyBy('TglNum');
+
+            // Siapkan hasil: 1 baris per hari dalam bulan
+            $result = [];
+            foreach ($tanggalList as $tgl) {
+                $totalOmset = isset($dataOmset[$tgl]) ? $dataOmset[$tgl]->TotalOmset : 0;
+                $totalKeluar = isset($dataKeluar[$tgl]) ? $dataKeluar[$tgl]->TotalKeluar : 0;
+                $result[] = (object) [
+                    'Tanggal' => $tgl,
+                    'TotalOmset' => $totalOmset,
+                    'TotalKeluar' => $totalKeluar,
+                ];
+            }
+
+            return DataTables::of(collect($result))
+                ->addIndexColumn()
+                ->addColumn('Tanggal', function ($row) {
+                    // Format: 01 Januari 2024
+                    $bulan = [
+                        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+                        '04' => 'April', '05' => 'Mei', '06' => 'Juni', '07' => 'Juli',
+                        '08' => 'Agustus', '09' => 'September', '10' => 'Oktober',
+                        '11' => 'November', '12' => 'Desember'
+                    ];
+                    $exp = explode('-', $row->Tanggal);
+                    if (count($exp) != 3)
+                        return $row->Tanggal;
+                    return ltrim($exp[2], '0') . ' ' . ($bulan[$exp[1]] ?? $exp[1]) . ' ' . $exp[0];
+                })
+                ->addColumn('TotalOmset', function ($row) {
+                    return 'Rp ' . number_format($row->TotalOmset, 0, ',', '.');
+                })
+                ->addColumn('TotalKeluar', function ($row) {
+                    return 'Rp ' . number_format($row->TotalKeluar, 0, ',', '.');
+                })
+                ->rawColumns(['Tanggal', 'TotalOmset', 'TotalKeluar'])
+                ->make(true);
+        }
+        $proyek = MasterProjek::get();
+        return view('laporan.omset-harian.index', compact('proyek'));
+    }
+
     public function DownloadOmset(Request $request)
     {
         $tahunDari = $request->input('tahun_dari', date('Y'));
@@ -125,14 +200,15 @@ class MenuLaporanController extends Controller
             $omsetData[$num] = $row;
         }
 
-        // Query ke database untuk omset per bulan-tahun
-        $transaksi = TransaksiDetail::selectRaw('YEAR(DibayarPada) as tahun, MONTH(DibayarPada) as bulan, SUM(TotalPembayaran) as total')
-            ->where('Status', 'Lunas')
-            ->whereBetween(DB::raw('YEAR(DibayarPada)'), [$tahunDari, $tahunSampai])
+        // Query ke database untuk omset per bulan-tahun dari TransaksiKeuangan IN
+        $transaksi = TransaksiKeuangan::selectRaw('YEAR(Tanggal) as tahun, MONTH(Tanggal) as bulan, SUM(Nominal) as total')
+            ->where('Jenis', 'IN')
+            ->whereBetween(DB::raw('YEAR(Tanggal)'), [$tahunDari, $tahunSampai])
             ->groupBy('tahun', 'bulan')
             ->orderBy('bulan')
             ->orderBy('tahun')
             ->get();
+
         foreach ($transaksi as $t) {
             $bulanNum = str_pad($t->bulan, 2, '0', STR_PAD_LEFT);
             $tahun = $t->tahun;
@@ -151,8 +227,65 @@ class MenuLaporanController extends Controller
                 'data' => $rows,
                 'tahun_dari' => $tahunDari,
                 'tahun_sampai' => $tahunSampai
-            ])->setPaper('a4', 'landscape');
+            ])->setPaper('a4', 'portrait');
             return $pdf->stream("Laporan_Omset_{$tahunDari}_{$tahunSampai}.pdf");
+        } else {
+            return back()->with('error', 'Format export tidak dikenali.');
+        }
+    }
+
+    public function DownloadOmsetHarian(Request $request)
+    {
+        $tanggalDari = $request->input('tanggal_dari', date('Y-m-01'));
+        $tanggalSampai = $request->input('tanggal_sampai', date('Y-m-d'));
+        $format = $request->input('format', 'excel');
+
+        if (strtotime($tanggalDari) > strtotime($tanggalSampai)) {
+            return back()->with('error', 'Rentang tanggal tidak valid.');
+        }
+
+        $period = new \DatePeriod(
+            new \DateTime($tanggalDari),
+            new \DateInterval('P1D'),
+            (new \DateTime($tanggalSampai))->modify('+1 day')
+        );
+
+        $omsetData = [];
+        foreach ($period as $date) {
+            $tgl = $date->format('Y-m-d');
+            $omsetData[$tgl] = [
+                'tanggal' => $tgl,
+                'total' => 0
+            ];
+        }
+
+        // Query database untuk total omset per hari
+        $transaksi = TransaksiDetail::selectRaw('DATE(DibayarPada) as tanggal, SUM(TotalPembayaran) as total')
+            ->where('Status', 'Lunas')
+            ->whereBetween(DB::raw('DATE(DibayarPada)'), [$tanggalDari, $tanggalSampai])
+            ->groupBy(DB::raw('DATE(DibayarPada)'))
+            ->orderBy('tanggal')
+            ->get();
+
+        foreach ($transaksi as $t) {
+            if (isset($omsetData[$t->tanggal])) {
+                $omsetData[$t->tanggal]['total'] = $t->total;
+            }
+        }
+
+        $rows = array_values($omsetData);
+
+        if ($format == 'excel') {
+            $fileName = "Laporan_Omset_Harian_{$tanggalDari}_sd_{$tanggalSampai}.xlsx";
+            // Jika ada OmsetHarianExport gunakan, jika belum, bisa gunakan OmsetExport juga.
+            return Excel::download(new OmsetHarianExport($rows, $tanggalDari, $tanggalSampai), $fileName);
+        } elseif ($format == 'pdf') {
+            $pdf = Pdf::loadView('laporan.omset-harian.export', [
+                'data' => $rows,
+                'tanggal_dari' => $tanggalDari,
+                'tanggal_sampai' => $tanggalSampai
+            ])->setPaper('a4', 'landscape');
+            return $pdf->stream("Laporan_Omset_Harian_{$tanggalDari}_sd_{$tanggalSampai}.pdf");
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }
@@ -272,7 +405,8 @@ class MenuLaporanController extends Controller
             });
 
         if ($tanggalMulai && $tanggalAkhir) {
-            $query->whereDate('TanggalTransaksi', '>=', $tanggalMulai)
+            $query
+                ->whereDate('TanggalTransaksi', '>=', $tanggalMulai)
                 ->whereDate('TanggalTransaksi', '<=', $tanggalAkhir);
         }
 
@@ -412,10 +546,8 @@ class MenuLaporanController extends Controller
         if ($format == 'excel') {
             if (!empty($namaBankFilter) && $namaBankFilter !== 'semua') {
                 $fileName = "Laporan_Mutasi_Dana_Bank_{$namaBankFilter}_{$tanggalAwal}_{$tanggalAkhir}.xlsx";
-                // return Excel::download(new \App\Exports\MutasiDanaExport($data, $tanggalAwal, $tanggalAkhir, $namaBankFilter, $saldo_awal), $fileName);
             } else {
                 $fileName = "Laporan_Mutasi_Dana_SemuaBank_{$tanggalAwal}_{$tanggalAkhir}.xlsx";
-                // return Excel::download(new \App\Exports\MutasiDanaExport($data, $tanggalAwal, $tanggalAkhir, 'semua', $saldo_awal_per_bank), $fileName);
             }
         } elseif ($format == 'pdf') {
             if (!empty($namaBankFilter) && $namaBankFilter !== 'semua') {
@@ -436,6 +568,167 @@ class MenuLaporanController extends Controller
                 ])->setPaper('a4', 'portrait');
                 return $pdf->stream("Laporan_Mutasi_Dana_SemuaBank_{$tanggalAwal}_{$tanggalAkhir}.pdf");
             }
+        } else {
+            return back()->with('error', 'Format export tidak dikenali.');
+        }
+    }
+
+    public function UnitBelumTerjual(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Produk::with(['getGrade', 'getJenis', 'getProyek', 'getDataBooking'])
+                ->whereDoesntHave('getDataBooking')
+                ->when($request->filled('proyek_id'), function ($query) use ($request) {
+                    $query->whereHas('getProyek', function ($q) use ($request) {
+                        $q->where('id', $request->proyek_id);
+                    });
+                })
+                ->latest();
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('Jenis', function ($row) {
+                    return $row->getJenis ? $row->getJenis->Nama : '-';
+                })
+                ->editColumn('Grade', function ($row) {
+                    return $row->getGrade ? $row->getGrade->Nama : '-';
+                })
+                ->editColumn('Proyek', function ($row) {
+                    return $row->getProyek ? $row->getProyek->NamaProyek : '-';
+                })
+                ->editColumn('HargaPerMeter', function ($row) {
+                    return RupiahFormat::currency($row->HargaPerMeter);
+                })
+                ->editColumn('Dp', function ($row) {
+                    return RupiahFormat::currency($row->Dp);
+                })
+                ->editColumn('BesarAngsuran', function ($row) {
+                    return RupiahFormat::currency($row->BesarAngsuran);
+                })
+                ->editColumn('HargaNormal', function ($row) {
+                    return RupiahFormat::currency($row->HargaNormal);
+                })
+                ->addColumn('Status', function ($row) {
+                    return '<span class="badge bg-success">Tersedia</span>';
+                })
+                ->rawColumns(['Status'])
+                ->make(true);
+        }
+        $proyeks = MasterProjek::get();
+        return view('laporan.unit-belum-terjual.index', compact('proyeks'));
+    }
+
+    public function DownloadUnitBelumTerjual(Request $request)
+    {
+        $format = $request->input('format', 'excel');
+        $proyekId = $request->input('proyek_id');
+
+        // Ambil data unit yang belum terjual (tidak punya relasi booking)
+        $query = Produk::with(['getGrade', 'getJenis', 'getProyek'])
+            ->whereDoesntHave('getDataBooking')
+            ->when($proyekId, function ($query) use ($proyekId) {
+                $query->whereHas('getProyek', function ($q) use ($proyekId) {
+                    $q->where('id', $proyekId);
+                });
+            });
+
+        $products = $query->get();
+
+        if ($format === 'excel') {
+            return Excel::download(new UnitBelumTerjualExport($products), 'unit-belum-terjual.xlsx');
+        } elseif ($format === 'pdf') {
+            $pdf = Pdf::loadView('laporan.unit-belum-terjual.cetak-pdf', [
+                'data' => $products
+            ])->setPaper('a4', 'landscape');
+            return $pdf->stream('unit-belum-terjual.pdf');
+        } else {
+            return back()->with('error', 'Format export tidak dikenali.');
+        }
+    }
+
+    public function Refund(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = TransaksiKeuangan::query()
+                ->where('Jenis', 'OUT')
+                ->where(function ($q) {
+                    $q
+                        ->Where('Kategori', 'LIKE', 'Refund');
+                })
+                ->when($request->proyek_id, function ($q) use ($request) {
+                    $q->whereHas('proyek', function ($sub) use ($request) {
+                        $sub->where('id', $request->proyek_id);
+                    });
+                })
+                // filter tahun jika diberikan
+                ->when($request->tahun, function ($q) use ($request) {
+                    $q->whereYear('Tanggal', $request->tahun);
+                })
+                ->orderBy('Tanggal', 'desc');
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->editColumn('id', function ($row) {
+                    return $row->id ?? '-';
+                })
+                ->editColumn('Tanggal', function ($row) {
+                    return $row->Tanggal ? date('d-m-Y', strtotime($row->Tanggal)) : '-';
+                })
+                ->editColumn('Jenis', function ($row) {
+                    return $row->Jenis ?? '-';
+                })
+                ->editColumn('Kategori', function ($row) {
+                    return $row->Kategori ?? '-';
+                })
+                ->editColumn('Deskripsi', function ($row) {
+                    return $row->Deskripsi ?? '-';
+                })
+                ->editColumn('Nominal', function ($row) {
+                    return RupiahFormat::currency($row->Nominal);
+                })
+                ->editColumn('NamaBank', function ($row) {
+                    return $row->NamaBank ?? '-';
+                })
+                ->editColumn('RefType', function ($row) {
+                    return $row->RefType ?? '-';
+                })
+                ->editColumn('RefId', function ($row) {
+                    return $row->RefId ?? '-';
+                })
+                ->rawColumns(['Deskripsi'])
+                ->make(true);
+        }
+
+        $proyeks = MasterProjek::get();
+        return view('laporan.refund.index', compact('proyeks'));
+    }
+
+    public function DownloadRefund(Request $request)
+    {
+        $format = $request->input('format', 'excel');
+        $proyekId = $request->input('proyek_id');
+
+        // Ambil data refund (jenis OUT & keterangan mengandung 'ref')
+        $query = TransaksiKeuangan::with(['produk', 'proyek'])
+            ->where('Jenis', 'OUT')
+            ->where('Keterangan', 'LIKE', '%ref%')
+            ->when($proyekId, function ($query) use ($proyekId) {
+                $query->whereHas('proyek', function ($q) use ($proyekId) {
+                    $q->where('id', $proyekId);
+                });
+            })
+            ->orderBy('Tanggal', 'desc');
+
+        $refunds = $query->get();
+
+        if ($format === 'excel') {
+            // Anda harus membuat RefundExport sesuai kebutuhan data Anda
+            return Excel::download(new \App\Exports\RefundExport($refunds), 'refund.xlsx');
+        } elseif ($format === 'pdf') {
+            $pdf = Pdf::loadView('laporan.refund.cetak-pdf', [
+                'refunds' => $refunds
+            ])->setPaper('a4', 'landscape');
+            return $pdf->stream('refund.pdf');
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }

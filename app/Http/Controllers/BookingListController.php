@@ -218,12 +218,12 @@ class BookingListController extends Controller
      */
     public function show($id)
     {
-
         $id = decrypt($id);
         $bookingList = BookingList::with('getPenawaran', 'getKaryawan', 'getDp.getBank', 'getTransaksiHeader')->findOrFail($id);
         // dd($bookingList);
         return view('booking-list.show', compact('bookingList'));
     }
+
     public function downloadCancel($id)
     {
         $id = decrypt($id);
@@ -234,7 +234,6 @@ class BookingListController extends Controller
             'getTransaksiHeader.getTransaksi'
         ])->findOrFail($id);
         $totalBookingFee = $bookingList->Total ?? 0;
-
 
         $totalDownPayment = 0;
         if ($bookingList->getDp) {
@@ -261,11 +260,12 @@ class BookingListController extends Controller
         $pdf = FacadePdf::loadView(
             'booking-list.cetak-pernyataan-cancel',
             compact('bookingList', 'totalBookingFee', 'totalDownPayment', 'totalAngsuran')
-        )->setPaper([0, 0, 595.28, 935.43], 'portrait'); // F4: 21 x 33 cm in points (1cm ≈ 28.3465 pt)
+        )->setPaper([0, 0, 595.28, 935.43], 'portrait');  // F4: 21 x 33 cm in points (1cm ≈ 28.3465 pt)
         $fileName = 'Surat_Cancel_Booking_' . ($bookingList->Nomor ?? $bookingList->id) . '.pdf';
 
         return $pdf->stream($fileName);
     }
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -315,8 +315,47 @@ class BookingListController extends Controller
             }
         }
 
+        if ($bookingList) {
+            $bookingTotal = preg_replace('/[^\d]/', '', $bookingList->Total ?? 0);
+            $dpTotal = preg_replace('/[^\d]/', '', $bookingList->getDp->Total ?? 0);
 
+            $cicilanTotal = 0;
+            if ($bookingList->getTransaksiHeader && $bookingList->getTransaksiHeader->getTransaksi) {
+                foreach ($bookingList->getTransaksiHeader->getTransaksi->where('Status', 'Lunas') as $transaksi) {
+                    $cicilanTotal += (int) preg_replace('/[^\d]/', '', $transaksi->TotalPembayaran ?? 0);
+                }
+            }
 
+            $totalRefund = (int) $bookingTotal + (int) $dpTotal + (int) $cicilanTotal;
+            $bank = $bookingList->NamaBank ?? null;
+            $refId = $bookingList->id;
+
+            $saldoSebelum = TransaksiKeuangan::where('NamaBank', $bank)
+                ->orderBy('Tanggal', 'desc')
+                ->orderBy('id', 'desc')
+                ->value('SaldoSetelah');
+            $saldoSebelum = $saldoSebelum ? preg_replace('/[^\d]/', '', $saldoSebelum) : 0;
+            $saldoSetelah = (int) $saldoSebelum - (int) $totalRefund;
+
+            TransaksiKeuangan::create([
+                'Tanggal' => now(),
+                'Jenis' => 'OUT',
+                'Kategori' => 'Refund',
+                'Deskripsi' => 'Pembatalan booking/refund booking fee #' . $bookingList->Nomor . ($alasanCancel ? ' - Alasan: ' . $alasanCancel : ''),
+                'Nominal' => $totalRefund,
+                'NamaBank' => $bank,
+                'RefType' => 'BookingList',
+                'RefId' => $refId,
+                'SaldoSetelah' => $saldoSetelah,
+                'UserCreate' => auth()->user()->name,
+                'Keterangan' => 'Refund: Pembatalan booking fee'
+            ]);
+        }
+
+        activity()
+            ->causedBy(auth()->user()->id)
+            ->withProperties(['ip' => request()->ip()])
+            ->log('Membatalkan booking list dengan nomor: ' . ($bookingList->Nomor ?? '-') . ', alasan: ' . ($alasanCancel ?? '-'));
         return redirect()->back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
