@@ -16,6 +16,7 @@ use App\Http\Controllers\MenuLaporanController;
 use App\Http\Controllers\PenawaranHargaController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\ProfilLembagaController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\TransaksiKeluarController;
@@ -49,7 +50,10 @@ Route::get('villages', [DependentDropdownController::class, 'villages'])->name('
 Route::group(['middleware' => ['auth']], function () {
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
-
+    Route::prefix('master/profil-lembaga')->group(function () {
+        Route::get('/', [ProfilLembagaController::class, 'index'])->name('profil-lembaga.index');
+        Route::post('/store', [ProfilLembagaController::class, 'store'])->name('profil-lembaga.store');
+    });
     Route::prefix('master/bank')->group(function () {
         Route::get('/', [MasterBankController::class, 'index'])->name('master-bank.index');
         Route::get('/create', [MasterBankController::class, 'create'])->name('master-bank.create');

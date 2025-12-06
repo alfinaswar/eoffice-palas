@@ -147,7 +147,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('home') }}">
+                                <a href="{{ route('profil-lembaga.index') }}">
                                     <i data-feather="user-check"></i>
                                     <span>Profil Lembaga</span>
                                 </a>
