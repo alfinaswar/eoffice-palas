@@ -7,6 +7,7 @@ use App\Exports\UnitBelumTerjualExport;
 use App\Models\MasterBank;
 use App\Models\MasterProjek;
 use App\Models\Produk;
+use App\Models\ProgresPengurusanSuratTanah;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiKeluar;
@@ -143,10 +144,18 @@ class MenuLaporanController extends Controller
                 ->addColumn('Tanggal', function ($row) {
                     // Format: 01 Januari 2024
                     $bulan = [
-                        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
-                        '04' => 'April', '05' => 'Mei', '06' => 'Juni', '07' => 'Juli',
-                        '08' => 'Agustus', '09' => 'September', '10' => 'Oktober',
-                        '11' => 'November', '12' => 'Desember'
+                        '01' => 'Januari',
+                        '02' => 'Februari',
+                        '03' => 'Maret',
+                        '04' => 'April',
+                        '05' => 'Mei',
+                        '06' => 'Juni',
+                        '07' => 'Juli',
+                        '08' => 'Agustus',
+                        '09' => 'September',
+                        '10' => 'Oktober',
+                        '11' => 'November',
+                        '12' => 'Desember'
                     ];
                     $exp = explode('-', $row->Tanggal);
                     if (count($exp) != 3)
@@ -637,10 +646,59 @@ class MenuLaporanController extends Controller
         if ($format === 'excel') {
             return Excel::download(new UnitBelumTerjualExport($products), 'unit-belum-terjual.xlsx');
         } elseif ($format === 'pdf') {
-            $pdf = Pdf::loadView('laporan.unit-belum-terjual.cetak-pdf', [
-                'data' => $products
-            ])->setPaper('a4', 'landscape');
-            return $pdf->stream('unit-belum-terjual.pdf');
+            if (empty($proyekId)) {
+                $grouped = $products->groupBy(function ($item) {
+                    return $item->getProyek ? $item->getProyek->NamaProyek : 'Lainnya';
+                });
+                $summary = [];
+                foreach ($grouped as $proyekNama => $items) {
+                    $sisaKavling = $items->count();
+                    $hargaKreditMin = $items->min('HargaNormal');
+                    $hargaKreditMax = $items->max('HargaNormal');
+                    $hargaCashMin = $items->min('HargaCash');
+                    $hargaCashMax = $items->max('HargaCash');
+                    $hargaPerMeterMin = $items->min('HargaPerMeter');
+                    $hargaPerMeterMax = $items->max('HargaPerMeter');
+
+                    $hargaKredit = $hargaKreditMin != $hargaKreditMax ?
+                        (RupiahFormat::currency($hargaKreditMin) . ' - ' . RupiahFormat::currency($hargaKreditMax)) :
+                        RupiahFormat::currency($hargaKreditMin);
+                    $hargaCash = ($hargaCashMin && $hargaCashMax && ($hargaCashMin != $hargaCashMax)) ?
+                        (RupiahFormat::currency($hargaCashMin) . ' - ' . RupiahFormat::currency($hargaCashMax)) :
+                        ($hargaCashMin ? RupiahFormat::currency($hargaCashMin) : '-');
+
+                    if ($hargaCashMin && $hargaCashMax && ($hargaCashMin != $hargaCashMax)) {
+                        $hargaCash = RupiahFormat::currency($hargaCashMin) . ' - ' . RupiahFormat::currency($hargaCashMax);
+                    } elseif ($hargaCashMin) {
+                        $hargaCash = RupiahFormat::currency($hargaCashMin);
+                    } else {
+                        $hargaCash = '-';
+                    }
+
+                    $keterangan = $hargaPerMeterMin != $hargaPerMeterMax ?
+                        'Rp ' . number_format($hargaPerMeterMin, 0, ',', '.') . ' - ' . number_format($hargaPerMeterMax, 0, ',', '.') . ' /m²' :
+                        ($hargaPerMeterMin ? 'Rp ' . number_format($hargaPerMeterMin, 0, ',', '.') . ' /m²' : '-');
+
+                    $summary[] = [
+                        'LokasiProyek' => $proyekNama,
+                        'SisaKavling' => $sisaKavling,
+                        'HargaKredit' => $hargaKredit,
+                        'HargaCash' => $hargaCash,
+                        'Keterangan' => $keterangan,
+                    ];
+                }
+
+                $pdf = Pdf::loadView('laporan.unit-belum-terjual.cetak-pdf', [
+                    'summary' => $summary
+                ])->setPaper('a4', 'portrait');
+                return $pdf->stream('unit-belum-terjual-grouped.pdf');
+            } else {
+                // Proyek dipilih, tampilkan detail per unit pada proyek tersebut seperti sebelumnya
+                $pdf = Pdf::loadView('laporan.unit-belum-terjual.cetak-pdf', [
+                    'data' => $products
+                ])->setPaper('a4', 'landscape');
+                return $pdf->stream('unit-belum-terjual.pdf');
+            }
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }
@@ -732,5 +790,61 @@ class MenuLaporanController extends Controller
         } else {
             return back()->with('error', 'Format export tidak dikenali.');
         }
+    }
+    public function ProgresSuratTanah(Request $request)
+    {
+        if ($request->ajax()) {
+            $proyekId = $request->input('proyek');
+            $tanggalAwal = $request->input('tanggal_awal');
+            $tanggalAkhir = $request->input('tanggal_akhir');
+
+            $query = ProgresPengurusanSuratTanah::with('getProyek')
+                ->when($proyekId && $proyekId !== 'semua', function ($q) use ($proyekId) {
+                    $q->where('KodeProyek', $proyekId);
+                })
+                ->when($tanggalAwal, function ($q) use ($tanggalAwal) {
+                    $q->whereDate('created_at', '>=', $tanggalAwal);
+                })
+                ->when($tanggalAkhir, function ($q) use ($tanggalAkhir) {
+                    $q->whereDate('created_at', '<=', $tanggalAkhir);
+                })
+                ->orderBy('created_at', 'desc');
+
+            return datatables()->of($query)
+                ->addIndexColumn()
+                ->editColumn('Deskripsi', function ($row) {
+                    return $row->Deskripsi ?? '-';
+                })
+                ->editColumn('KodeProyek', function ($row) {
+                    return $row->getProyek->NamaProyek ?? '-';
+                })
+                ->editColumn('created_at', function ($row) {
+                    return $row->created_at ? $row->created_at->format('d-m-Y H:i') : '-';
+                })
+                ->rawColumns(['Deskripsi'])
+                ->make(true);
+        }
+
+        $proyeks = MasterProjek::get();
+        return view('laporan.progres-surat-tanah.index', compact('proyeks'));
+    }
+
+    public function DownloadProgresSuratTanah(Request $request)
+    {
+        $format = $request->input('format', 'excel');
+        $proyekId = $request->input('proyek_id');
+
+        $query = ProgresPengurusanSuratTanah::with('getProyek')
+            ->when($proyekId && $proyekId !== 'semua', function ($q) use ($proyekId) {
+                $q->where('KodeProyek', $proyekId);
+            })
+            ->orderBy('created_at', 'desc');
+
+        $progress = $query->get();
+
+        $pdf = Pdf::loadView('laporan.progres-surat-tanah.cetak-pdf', [
+            'progress' => $progress
+        ])->setPaper('a4', 'portrait');
+        return $pdf->stream('progres_surat_tanah.pdf');
     }
 }

@@ -17,6 +17,7 @@ use App\Http\Controllers\PenawaranHargaController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\ProfilLembagaController;
+use App\Http\Controllers\ProgresPengurusanSuratTanahController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\TransaksiKeluarController;
@@ -62,6 +63,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::put('/update/{id}', [MasterBankController::class, 'update'])->name('master-bank.update');
         Route::get('/show/{id}', [MasterBankController::class, 'show'])->name('master-bank.show');
         Route::delete('/delete/{id}', [MasterBankController::class, 'destroy'])->name('master-bank.destroy');
+    });
+    Route::prefix('progres-pengurusan-tanah')->group(function () {
+        Route::get('/', [ProgresPengurusanSuratTanahController::class, 'index'])->name('pengurusan-tanah.index');
+        Route::get('/create', [ProgresPengurusanSuratTanahController::class, 'create'])->name('pengurusan-tanah.create');
+        Route::post('/store', [ProgresPengurusanSuratTanahController::class, 'store'])->name('pengurusan-tanah.store');
+        Route::get('/edit/{id}', [ProgresPengurusanSuratTanahController::class, 'edit'])->name('pengurusan-tanah.edit');
+        Route::put('/update/{id}', [ProgresPengurusanSuratTanahController::class, 'update'])->name('pengurusan-tanah.update');
+        Route::get('/show/{id}', [ProgresPengurusanSuratTanahController::class, 'show'])->name('pengurusan-tanah.show');
+        Route::delete('/delete/{id}', [ProgresPengurusanSuratTanahController::class, 'destroy'])->name('pengurusan-tanah.destroy');
     });
     Route::prefix('master/customer')->group(function () {
         Route::get('/', [MasterCustomer::class, 'index'])->name('customer.index');
@@ -216,5 +226,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('laporan/refund')->group(function () {
         Route::get('/', [MenuLaporanController::class, 'Refund'])->name('laporan-refund.index');
         Route::post('/store', [MenuLaporanController::class, 'DownloadRefund'])->name('laporan-refund.download');
+    });
+    Route::prefix('laporan/progres-surat-tanah')->group(function () {
+        Route::get('/', [MenuLaporanController::class, 'ProgresSuratTanah'])->name('laporan-progres-surat-tanah.index');
+        Route::post('/download', [MenuLaporanController::class, 'DownloadProgresSuratTanah'])->name('laporan-progres-surat-tanah.download');
     });
 });

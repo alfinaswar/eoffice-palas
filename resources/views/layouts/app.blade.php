@@ -179,28 +179,57 @@
                     <li class="submenu-open">
                         <h6 class="submenu-hdr">Transaksi Kasir</h6>
                         <ul>
-                            <li>
-                                <a href="{{ route('booking-list.index') }}">
-                                    <i data-feather="calendar"></i>
-                                    <span>Booking List</span>
+                            <li class="submenu">
+                                <a href="#">
+                                    <i data-feather="log-in"></i>
+                                    <span>Transaksi Masuk</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
+                                <ul style="display: none;">
+                                    <li>
+                                        <a href="{{ route('booking-list.index') }}">
+                                            <i data-feather="calendar"></i>
+                                            <span>Booking List</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('dp.index') }}">
+                                            <i data-feather="credit-card"></i>
+                                            <span>Down Payment</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('transaksi.index') }}">
+                                            <i data-feather="dollar-sign"></i>
+                                            <span>Pembayaran</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
-                            <li>
-                                <a href="{{ route('dp.index') }}">
-                                    <i data-feather="credit-card"></i>
-                                    <span>Down Payment</span>
+                            <li class="submenu">
+                                <a href="#">
+                                    <i data-feather="log-out"></i>
+                                    <span>Transaksi Keluar</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
+                                <ul style="display: none;">
+                                    <li>
+                                        <a href="{{ route('transaksi-keluar.index') }}">
+                                            <i data-feather="arrow-up-circle"></i>
+                                            <span>Uang Keluar</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
+                        </ul>
+                    </li>
+                    <li class="submenu-open">
+                        <h6 class="submenu-hdr">Dokumen / Pencatatan Kegiatan</h6>
+                        <ul>
                             <li>
-                                <a href="{{ route('transaksi.index') }}">
-                                    <i data-feather="dollar-sign"></i>
-                                    <span>Pembayaran</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('transaksi-keluar.index') }}">
-                                    <i data-feather="arrow-up-circle"></i>
-                                    <span>Uang Keluar</span>
+                                <a href="{{ route('pengurusan-tanah.index') }}">
+                                    <i data-feather="file-text"></i>
+                                    <span>Pengurusan Surat Tanah</span>
                                 </a>
                             </li>
                         </ul>
@@ -231,6 +260,12 @@
                                         <a href="{{ route('laporan-mutasi.index') }}">
                                             <i data-feather="file-text"></i>
                                             <span>Mutasi Dana</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('laporan-progres-surat-tanah.index') }}">
+                                            <i data-feather="file-text"></i>
+                                            <span>Pengurusan Surat Tanah</span>
                                         </a>
                                     </li>
                                 </ul>

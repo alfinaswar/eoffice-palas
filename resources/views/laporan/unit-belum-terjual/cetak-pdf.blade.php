@@ -32,6 +32,10 @@
             margin-bottom: 1em;
         }
 
+        .text-right {
+            text-align: right;
+        }
+
         tfoot th,
         tfoot td {
             font-weight: bold;
@@ -45,59 +49,35 @@
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Jenis</th>
-                <th>Grade</th>
                 <th>Proyek</th>
-                <th>Harga Per Meter</th>
-                <th>DP</th>
-                <th>Besar Angsuran</th>
-                <th>Harga Normal</th>
-                <th>Status</th>
+                <th>Sisa Kavling</th>
+                <th>Harga Kredit</th>
+                <th>Harga Cash</th>
+                <th>Keterangan</th>
             </tr>
         </thead>
         <tbody>
             @php
-                $no = 1;
-                $totalHargaPerMeter = 0;
-                $totalDp = 0;
-                $totalBesarAngsuran = 0;
-                $totalHargaNormal = 0;
+                $totalSisaKavling = 0;
             @endphp
-            @foreach ($data as $item)
+            @foreach ($summary as $item)
                 <tr>
-                    <td>{{ $no++ }}</td>
-                    <td>{{ $item->getJenis ? $item->getJenis->Nama : '-' }}</td>
-                    <td>{{ $item->getGrade ? $item->getGrade->Nama : '-' }}</td>
-                    <td>{{ $item->getProyek ? $item->getProyek->NamaProyek : '-' }}</td>
-                    <td style="text-align: right;">
-                        {{ 'Rp ' . number_format($item->HargaPerMeter, 0, ',', '.') }}
-                        @php $totalHargaPerMeter += $item->HargaPerMeter; @endphp
+                    <td>{{ $item['LokasiProyek'] }}</td>
+                    <td class="text-right">
+                        {{ $item['SisaKavling'] }}
+                        @php $totalSisaKavling += $item['SisaKavling']; @endphp
                     </td>
-                    <td style="text-align: right;">
-                        {{ 'Rp ' . number_format($item->Dp, 0, ',', '.') }}
-                        @php $totalDp += $item->Dp; @endphp
-                    </td>
-                    <td style="text-align: right;">
-                        {{ 'Rp ' . number_format($item->BesarAngsuran, 0, ',', '.') }}
-                        @php $totalBesarAngsuran += $item->BesarAngsuran; @endphp
-                    </td>
-                    <td style="text-align: right;">
-                        {{ 'Rp ' . number_format($item->HargaNormal, 0, ',', '.') }}
-                        @php $totalHargaNormal += $item->HargaNormal; @endphp
-                    </td>
-                    <td>Tersedia</td>
+                    <td class="text-right">{{ $item['HargaKredit'] }}</td>
+                    <td class="text-right">{{ $item['HargaCash'] }}</td>
+                    <td>{{ $item['Keterangan'] }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <th colspan="4" style="text-align: center;">Total</th>
-                <th style="text-align: right;">{{ 'Rp ' . number_format($totalHargaPerMeter, 0, ',', '.') }}</th>
-                <th style="text-align: right;">{{ 'Rp ' . number_format($totalDp, 0, ',', '.') }}</th>
-                <th style="text-align: right;">{{ 'Rp ' . number_format($totalBesarAngsuran, 0, ',', '.') }}</th>
-                <th style="text-align: right;">{{ 'Rp ' . number_format($totalHargaNormal, 0, ',', '.') }}</th>
-                <th></th>
+                <th>Total</th>
+                <th class="text-right">{{ $totalSisaKavling }}</th>
+                <th colspan="3"></th>
             </tr>
         </tfoot>
     </table>
