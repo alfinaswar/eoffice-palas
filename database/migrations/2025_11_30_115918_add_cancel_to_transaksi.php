@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('transaksi', function (Blueprint $table) {
+        Schema::table('Transaksi', function (Blueprint $table) {
             $table->string('KodeKantor')->nullable()->after('id');
             $table->enum('StatusOrder', ['Aktif', 'Cancel'])->default('Aktif')->after('Keterangan');
             $table->string('UserCancel')->nullable()->after('StatusOrder');
