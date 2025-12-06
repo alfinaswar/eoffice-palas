@@ -10,7 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('transaksi', function (Blueprint $table) {
+        Schema::table('Transaksi', function (Blueprint $table) {
             $table->enum('TipePembayaran', ['Kredit', 'Tunai'])->nullable()->after('TotalHarga');
             $table->string('DurasiPembayaran', 100)->nullable()->after('TipePembayaran');
         });
